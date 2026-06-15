@@ -14,7 +14,30 @@ class DashboardController extends Controller
 {
     public function index()
     {
+        $user = auth()->user();
+
+        // 1. If Super Admin (and not impersonating a tenant), redirect to Super Admin Dashboard
+        if ($user->is_super_admin && !app()->bound('current_organization')) {
+            return redirect()->route('super-admin.dashboard');
+        }
+
+        // 2. If the user does not belong to any organization, redirect to buyer tickets
+        if (!$user->organizations()->exists()) {
+            return redirect()->route('buyer.my-tickets');
+        }
+
+        // 3. Ensure organization is bound (EnsureTenant middleware handles binding)
+        if (!app()->bound('current_organization')) {
+            return redirect()->route('buyer.my-tickets');
+        }
+
         $organization = app('current_organization');
+        
+        // 4. Ensure user has a role in this organization
+        if (!$user->currentTenantRole()) {
+            return redirect()->route('buyer.my-tickets');
+        }
+
         $orgId = $organization->id;
 
         // --- Summary Cards Data ---
