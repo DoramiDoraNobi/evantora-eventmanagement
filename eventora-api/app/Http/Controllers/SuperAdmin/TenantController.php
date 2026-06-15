@@ -16,10 +16,12 @@ class TenantController extends Controller
 
     public function toggleStatus(Organization $tenant)
     {
-        // Simple toggle for suspension/activation (Assuming we might add an 'is_active' column later, 
-        // but for MVP, we just show the concept)
-        // $tenant->update(['is_active' => !$tenant->is_active]);
+        $tenant->update(['is_active' => !$tenant->is_active]);
         
-        return back()->with('status', 'Tenant status updated (simulated).');
+        $statusMessage = $tenant->is_active 
+            ? "Tenant '{$tenant->name}' has been activated successfully." 
+            : "Tenant '{$tenant->name}' has been suspended successfully.";
+
+        return back()->with('status', $statusMessage);
     }
 }

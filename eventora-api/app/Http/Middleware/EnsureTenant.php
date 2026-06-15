@@ -27,11 +27,16 @@ class EnsureTenant
             }
 
             if (!$organization && $user->organizations()->exists()) {
-                $organization = $user->organizations()->first();
-                session(['current_organization_id' => $organization->id]);
+                $organization = $user->organizations()->where('is_active', true)->first();
+                if ($organization) {
+                    session(['current_organization_id' => $organization->id]);
+                }
             }
 
             if ($organization) {
+                if (!$organization->is_active) {
+                    abort(403, 'Your organization has been suspended. Please contact support.');
+                }
                 app()->instance('current_organization', $organization);
                 View::share('currentOrganization', $organization);
             }

@@ -22,6 +22,9 @@ class PublicEventController extends Controller
                 $query->whereNull('end_date')
                     ->orWhere('end_date', '>=', now());
             })
+            ->whereHas('organization', function ($query) {
+                $query->where('is_active', true);
+            })
             ->orderBy('start_date', 'asc')
             ->paginate(6);
 
@@ -37,14 +40,14 @@ class PublicEventController extends Controller
 
     public function organizationProfile($organizationSlug)
     {
-        $organization = Organization::where('slug', $organizationSlug)->firstOrFail();
+        $organization = Organization::where('slug', $organizationSlug)->where('is_active', true)->firstOrFail();
         $events = $organization->events()->where('status', 'published')->orderBy('start_date', 'asc')->paginate(12);
         return view('public.organization.show', compact('organization', 'events'));
     }
 
     public function show($organizationSlug, $eventSlug)
     {
-        $organization = Organization::where('slug', $organizationSlug)->firstOrFail();
+        $organization = Organization::where('slug', $organizationSlug)->where('is_active', true)->firstOrFail();
         $event = $organization->events()->where('slug', $eventSlug)->where('status', 'published')->firstOrFail();
         
         $tickets = $event->tickets()->where('is_active', true)->orderBy('sort_order')->get();
@@ -54,7 +57,7 @@ class PublicEventController extends Controller
 
     public function checkout(Request $request, $organizationSlug, $eventSlug)
     {
-        $organization = Organization::where('slug', $organizationSlug)->firstOrFail();
+        $organization = Organization::where('slug', $organizationSlug)->where('is_active', true)->firstOrFail();
         $event = $organization->events()->where('slug', $eventSlug)->where('status', 'published')->firstOrFail();
         
         // Process selected tickets from the landing page
@@ -84,7 +87,7 @@ class PublicEventController extends Controller
 
     public function processCheckout(Request $request, $organizationSlug, $eventSlug)
     {
-        $organization = Organization::where('slug', $organizationSlug)->firstOrFail();
+        $organization = Organization::where('slug', $organizationSlug)->where('is_active', true)->firstOrFail();
         $event = $organization->events()->where('slug', $eventSlug)->where('status', 'published')->firstOrFail();
         
         $validated = $request->validate([
