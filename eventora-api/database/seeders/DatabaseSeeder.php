@@ -3,73 +3,119 @@
 namespace Database\Seeders;
 
 use App\Models\User;
-use Illuminate\Database\Console\Seeds\WithoutModelEvents;
+use App\Models\Organization;
+use App\Models\Event;
+use App\Models\Ticket;
+use App\Models\Order;
+use App\Models\Attendee;
 use Illuminate\Database\Seeder;
+use Illuminate\Support\Facades\Hash;
+use Illuminate\Support\Str;
 
 class DatabaseSeeder extends Seeder
 {
-    use WithoutModelEvents;
-
-    /**
-     * Seed the application's database.
-     */
     public function run(): void
     {
-        User::factory()->create([
+        // 1. Create Default Users
+        $superAdmin = User::factory()->create([
             'name' => 'Super Admin',
             'email' => 'superadmin@eventora.com',
-            'password' => \Illuminate\Support\Facades\Hash::make('password'),
+            'password' => Hash::make('password'),
             'is_super_admin' => true,
         ]);
 
-        $user = User::factory()->create([
-            'name' => 'Test User',
+        $testUser = User::factory()->create([
+            'name' => 'Test Organizer',
             'email' => 'test@example.com',
-            'password' => \Illuminate\Support\Facades\Hash::make('password')
-        ]);
-
-        $org = \App\Models\Organization::create([
-            'name' => 'Tech Conference Inc',
-            'slug' => 'tech-conf',
-            'primary_color' => '#4f46e5'
+            'password' => Hash::make('password'),
+            'is_super_admin' => false,
         ]);
         
-        $org->users()->attach($user->id, ['role' => 'owner']);
-
-        $event = $org->events()->create([
-            'title' => 'Laravel Super Summit 2026',
-            'slug' => 'laravel-super-summit-2026',
-            'subtitle' => 'The ultimate gathering for artisan developers.',
-            'description' => 'Join us for the most anticipated Laravel event of the year! Over three days, you will learn from industry experts, network with top developers, and dive deep into advanced topics like scalable architecture, serverless deployments, and the future of PHP. <br><br><b>What to expect:</b><ul><li>Keynote by Taylor Otwell</li><li>30+ Technical Sessions</li><li>Exclusive Networking Party</li><li>Swag Bag & Catering</li></ul><br>Whether you are a junior developer or a seasoned architect, the Super Summit has something to take your skills to the next level.',
-            'short_description' => 'Join thousands of developers worldwide for the biggest Laravel conference.',
-            'type' => 'hybrid',
-            'start_date' => now()->addDays(10),
-            'end_date' => now()->addDays(12),
-            'timezone' => 'UTC',
-            'status' => 'published',
-            'venue_name' => 'Grand Convention Center',
-            'venue_address' => '123 Tech Boulevard, Silicon Valley, CA 94000',
-            'online_url' => 'https://zoom.us/j/1234567890',
-            'hero_image' => 'events/hero.png',
-            'refund_policy' => 'Tickets are fully refundable up to 7 days before the event. After that, no refunds will be issued.',
-            'terms' => 'By purchasing a ticket, you agree to our Code of Conduct and event rules.',
+        $buyerUser = User::factory()->create([
+            'name' => 'Demo Buyer',
+            'email' => 'buyer@example.com',
+            'password' => Hash::make('password'),
+            'is_super_admin' => false,
         ]);
 
-        $event->tickets()->create([
-            'organization_id' => $org->id,
-            'name' => 'General Admission',
-            'type' => 'free',
-            'price' => 0,
-            'is_active' => true,
+        // 2. Create the Primary Demo Organization for testUser
+        $demoOrg = Organization::factory()->create([
+            'name' => 'Eventora Demo Org',
+            'slug' => 'eventora-demo',
+            'primary_color' => '#4f46e5'
         ]);
+        $demoOrg->users()->attach($testUser->id, ['role' => 'owner']);
 
-        $event->tickets()->create([
-            'organization_id' => $org->id,
-            'name' => 'VIP Access',
-            'type' => 'paid',
-            'price' => 150.00,
-            'quantity' => 50,
-            'is_active' => true,
-        ]);
+        // Generate more random organizations
+        $orgs = Organization::factory()->count(10)->create();
+        $orgs->push($demoOrg); // Include demoOrg in the collection for seeding events
+
+        // 3. For each Organization, generate Events, Tickets, Orders, and Attendees
+        foreach ($orgs as $org) {
+            
+            // Add some random staff to each org (except the demo one which we already set up)
+            if ($org->id !== $demoOrg->id) {
+                $staffs = User::factory()->count(2)->create();
+                foreach($staffs as $staff) {
+                    $org->users()->attach($staff->id, ['role' => 'admin']);
+                }
+            }
+
+            // Generate 5-10 Events per Organization
+            $events = Event::factory()->count(rand(5, 10))->create([
+                'organization_id' => $org->id
+            ]);
+
+            foreach ($events as $event) {
+                // Generate 2-4 Tickets per Event
+                $tickets = Ticket::factory()->count(rand(2, 4))->create([
+                    'organization_id' => $org->id,
+                    'event_id' => $event->id
+                ]);
+
+                // Only generate orders/attendees if the event is published
+                if ($event->status === 'published') {
+                    
+                    // Generate 10-30 Orders for this event
+                    $orders = Order::factory()->count(rand(10, 30))->create([
+                        'organization_id' => $org->id,
+                        'event_id' => $event->id,
+                    ]);
+
+                    foreach ($orders as $order) {
+                        // For each order, create 1-3 Attendees
+                        $numAttendees = rand(1, 3);
+                        $ticketForOrder = $tickets->random();
+                        
+                        // Update order totals
+                        $order->subtotal = $ticketForOrder->price * $numAttendees;
+                        $order->total = $order->subtotal;
+                        $order->status = $order->total > 0 ? 'paid' : 'pending';
+                        
+                        // Ensure an order is assigned to a realistic buyer 
+                        $order->user_id = (rand(1, 10) > 8) ? $buyerUser->id : User::inRandomOrder()->first()->id;
+                        $order->save();
+
+                        $attendees = Attendee::factory()->count($numAttendees)->make([
+                            'organization_id' => $org->id,
+                            'event_id' => $event->id,
+                            'order_id' => $order->id,
+                            'ticket_id' => $ticketForOrder->id,
+                        ]);
+
+                        foreach($attendees as $attendee) {
+                            if ($order->status !== 'paid' && $order->total > 0) {
+                                $attendee->status = 'registered';
+                                $attendee->checked_in_at = null;
+                            }
+                            $attendee->save();
+                        }
+                        
+                        // Update ticket quantity sold
+                        $ticketForOrder->increment('quantity_sold', $numAttendees);
+                    }
+                }
+            }
+        }
     }
 }
