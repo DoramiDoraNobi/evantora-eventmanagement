@@ -9,6 +9,8 @@ import '../features/tickets/presentation/checkout_screen.dart';
 import '../features/tickets/presentation/my_tickets_screen.dart';
 import '../features/tickets/presentation/ticket_detail_screen.dart';
 import '../features/tickets/domain/ticket_model.dart';
+import '../features/organizer/presentation/organizer_dashboard_screen.dart';
+import '../features/organizer/presentation/organizer_events_screen.dart';
 
 final routerProvider = Provider<GoRouter>((ref) {
   return GoRouter(
@@ -53,9 +55,11 @@ final routerProvider = Provider<GoRouter>((ref) {
       ),
       GoRoute(
         path: '/organizer',
-        builder: (context, state) => const Scaffold(
-          body: Center(child: Text('Organizer Dashboard - Under Construction')),
-        ),
+        builder: (context, state) => const OrganizerDashboardScreen(),
+      ),
+      GoRoute(
+        path: '/organizer/events',
+        builder: (context, state) => const OrganizerEventsScreen(),
       ),
     ],
   );

@@ -2,6 +2,7 @@ import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:go_router/go_router.dart';
 import 'auth_controller.dart';
+import '../../organizer/presentation/organizer_controller.dart';
 
 class LoginScreen extends ConsumerStatefulWidget {
   const LoginScreen({super.key});
@@ -48,7 +49,9 @@ class _LoginScreenState extends ConsumerState<LoginScreen> {
         // Login success, check role and route
         final user = next.value!;
         if (user.isOrganizer) {
-          // Route to Organizer dashboard or switcher
+          // Set the active organization for organizer dashboard
+          ref.read(selectedOrgIdProvider.notifier).state =
+              user.organizations.first.id;
           context.go('/organizer');
         } else {
           // Route to Buyer Home
