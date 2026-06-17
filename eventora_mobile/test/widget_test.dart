@@ -7,7 +7,7 @@ void main() {
     // Build our app and trigger a frame.
     await tester.pumpWidget(const ProviderScope(child: EventoraApp()));
 
-    // Verify that the initial route loads
-    expect(find.text('Eventora Loading...'), findsOneWidget);
+    // Verify that the login route loads
+    expect(find.text('Welcome back'), findsOneWidget);
   });
 }
