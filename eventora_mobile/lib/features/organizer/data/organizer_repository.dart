@@ -33,4 +33,17 @@ class OrganizerRepository {
           e.response?.data['message'] ?? 'Failed to load events');
     }
   }
+
+  Future<String> checkinTicket(int orgId, String ticketCode) async {
+    try {
+      final response = await _dio.post(
+        ApiConstants.organizerCheckin(orgId),
+        data: {'ticket_code': ticketCode},
+      );
+      return response.data['message'] ?? 'Check-in successful';
+    } on DioException catch (e) {
+      throw Exception(
+          e.response?.data['message'] ?? 'Failed to check in ticket');
+    }
+  }
 }
