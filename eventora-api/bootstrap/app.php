@@ -26,6 +26,10 @@ return Application::configure(basePath: dirname(__DIR__))
             'tenant.role' => \App\Http\Middleware\EnsureTenantRole::class,
             'api.org' => \App\Http\Middleware\EnsureApiOrganization::class,
         ]);
+
+        $middleware->api(append: [
+            \App\Http\Middleware\SecurityHeaders::class,
+        ]);
     })
     ->withExceptions(function (Exceptions $exceptions): void {
         $exceptions->shouldRenderJsonWhen(

@@ -24,15 +24,17 @@ use App\Http\Controllers\Api\V1\TeamController;
 |
 */
 
-Route::prefix('v1')->group(function () {
+Route::prefix('v1')->middleware('throttle:api')->group(function () {
 
     // =====================================================================
     // PUBLIC ROUTES (No Authentication Required)
     // =====================================================================
 
     // Auth
-    Route::post('auth/login', [AuthController::class, 'login']);
-    Route::post('auth/register', [AuthController::class, 'register']);
+    Route::middleware('throttle:auth')->group(function () {
+        Route::post('auth/login', [AuthController::class, 'login']);
+        Route::post('auth/register', [AuthController::class, 'register']);
+    });
 
     // Browse Events
     Route::get('events', [PublicEventController::class, 'index']);
