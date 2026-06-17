@@ -5,6 +5,10 @@ import '../features/auth/presentation/login_screen.dart';
 import '../features/auth/presentation/register_screen.dart';
 import '../features/discovery/presentation/home_screen.dart';
 import '../features/discovery/presentation/event_detail_screen.dart';
+import '../features/tickets/presentation/checkout_screen.dart';
+import '../features/tickets/presentation/my_tickets_screen.dart';
+import '../features/tickets/presentation/ticket_detail_screen.dart';
+import '../features/tickets/domain/ticket_model.dart';
 
 final routerProvider = Provider<GoRouter>((ref) {
   return GoRouter(
@@ -27,6 +31,24 @@ final routerProvider = Provider<GoRouter>((ref) {
         builder: (context, state) {
           final id = int.parse(state.pathParameters['id']!);
           return EventDetailScreen(eventId: id);
+        },
+      ),
+      GoRoute(
+        path: '/checkout/:eventId',
+        builder: (context, state) {
+          final eventId = int.parse(state.pathParameters['eventId']!);
+          return CheckoutScreen(eventId: eventId);
+        },
+      ),
+      GoRoute(
+        path: '/my-tickets',
+        builder: (context, state) => const MyTicketsScreen(),
+      ),
+      GoRoute(
+        path: '/ticket/:id',
+        builder: (context, state) {
+          final ticket = state.extra as Ticket;
+          return TicketDetailScreen(ticket: ticket);
         },
       ),
       GoRoute(

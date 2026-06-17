@@ -157,10 +157,7 @@ class EventDetailScreen extends ConsumerWidget {
                 ),
                 ElevatedButton(
                   onPressed: () {
-                    // Navigate to checkout
-                    ScaffoldMessenger.of(context).showSnackBar(
-                      const SnackBar(content: Text('Checkout flow coming soon')),
-                    );
+                    context.push('/checkout/${event.id}');
                   },
                   style: ElevatedButton.styleFrom(
                     padding: const EdgeInsets.symmetric(horizontal: 32, vertical: 16),
