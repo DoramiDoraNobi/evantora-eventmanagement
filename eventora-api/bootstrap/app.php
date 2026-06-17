@@ -24,6 +24,7 @@ return Application::configure(basePath: dirname(__DIR__))
         $middleware->alias([
             'superadmin' => \App\Http\Middleware\EnsureSuperAdmin::class,
             'tenant.role' => \App\Http\Middleware\EnsureTenantRole::class,
+            'api.org' => \App\Http\Middleware\EnsureApiOrganization::class,
         ]);
     })
     ->withExceptions(function (Exceptions $exceptions): void {

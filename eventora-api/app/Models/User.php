@@ -9,13 +9,14 @@ use Illuminate\Database\Eloquent\Attributes\Hidden;
 use Illuminate\Database\Eloquent\Factories\HasFactory;
 use Illuminate\Foundation\Auth\User as Authenticatable;
 use Illuminate\Notifications\Notifiable;
+use Laravel\Sanctum\HasApiTokens;
 
 #[Fillable(['name', 'email', 'password'])]
 #[Hidden(['password', 'remember_token'])]
 class User extends Authenticatable
 {
     /** @use HasFactory<UserFactory> */
-    use HasFactory, Notifiable;
+    use HasFactory, Notifiable, HasApiTokens;
 
     /**
      * Get the attributes that should be cast.
@@ -72,6 +73,15 @@ class User extends Authenticatable
         }
 
         $organization = $this->organizations()->where('organization_id', $organizationId)->first();
+        return $organization ? $organization->pivot->role : null;
+    }
+
+    /**
+     * Get the user's role in a specific organization (for API use, no session needed).
+     */
+    public function getRoleInOrganization($orgId): ?string
+    {
+        $organization = $this->organizations()->where('organization_id', $orgId)->first();
         return $organization ? $organization->pivot->role : null;
     }
 }
