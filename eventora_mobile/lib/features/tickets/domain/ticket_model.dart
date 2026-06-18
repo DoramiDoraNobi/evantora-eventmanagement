@@ -17,9 +17,9 @@ class Ticket {
 
   factory Ticket.fromJson(Map<String, dynamic> json) {
     return Ticket(
-      id: json['id'],
-      ticketCode: json['ticket_code'],
-      status: json['status'],
+      id: json['id'] ?? 0,
+      ticketCode: json['ticket_number'] ?? json['ticket_code'] ?? 'N/A',
+      status: json['status'] ?? 'unknown',
       price: (json['price'] as num?)?.toDouble() ?? 0.0,
       event: json['event'] != null ? Event.fromJson(json['event']) : null,
     );

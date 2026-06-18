@@ -6,8 +6,9 @@ import 'ticket_controller.dart';
 
 class CheckoutScreen extends ConsumerWidget {
   final int eventId;
+  final Map<int, int> selectedTickets;
 
-  const CheckoutScreen({super.key, required this.eventId});
+  const CheckoutScreen({super.key, required this.eventId, required this.selectedTickets});
 
   @override
   Widget build(BuildContext context, WidgetRef ref) {
@@ -32,6 +33,43 @@ class CheckoutScreen extends ConsumerWidget {
       ),
       body: eventAsync.when(
         data: (event) {
+          // Calculate total dynamically based on selected tickets
+          double totalAmount = 0.0;
+          final List<Widget> ticketRows = [];
+
+          if (selectedTickets.isEmpty) {
+            ticketRows.add(const Text('No tickets selected.'));
+          } else {
+            for (final entry in selectedTickets.entries) {
+              final ticketId = entry.key;
+              final qty = entry.value;
+              final ticketInfo = event.tickets.firstWhere((t) => t.id == ticketId);
+              
+              totalAmount += qty * ticketInfo.price;
+
+              ticketRows.add(
+                Padding(
+                  padding: const EdgeInsets.symmetric(vertical: 4.0),
+                  child: Row(
+                    mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                    children: [
+                      Expanded(
+                        child: Text(
+                          ticketInfo.name,
+                          style: Theme.of(context).textTheme.titleMedium,
+                        ),
+                      ),
+                      Text(
+                        '${qty}x  \$${(qty * ticketInfo.price).toStringAsFixed(2)}',
+                        style: Theme.of(context).textTheme.titleMedium,
+                      ),
+                    ],
+                  ),
+                ),
+              );
+            }
+          }
+
           return Padding(
             padding: const EdgeInsets.all(24.0),
             child: Column(
@@ -49,21 +87,7 @@ class CheckoutScreen extends ConsumerWidget {
                     padding: const EdgeInsets.all(16.0),
                     child: Column(
                       children: [
-                        Row(
-                          mainAxisAlignment: MainAxisAlignment.spaceBetween,
-                          children: [
-                            Expanded(
-                              child: Text(
-                                event.title,
-                                style: Theme.of(context).textTheme.titleMedium,
-                              ),
-                            ),
-                            Text(
-                              '1x',
-                              style: Theme.of(context).textTheme.titleMedium,
-                            ),
-                          ],
-                        ),
+                        ...ticketRows,
                         const Divider(height: 32),
                         Row(
                           mainAxisAlignment: MainAxisAlignment.spaceBetween,
@@ -75,7 +99,7 @@ class CheckoutScreen extends ConsumerWidget {
                                   ),
                             ),
                             Text(
-                              '\$${event.price.toStringAsFixed(2)}',
+                              '\$${totalAmount.toStringAsFixed(2)}',
                               style: Theme.of(context).textTheme.titleLarge?.copyWith(
                                     fontWeight: FontWeight.bold,
                                     color: Theme.of(context).colorScheme.primary,
@@ -89,12 +113,12 @@ class CheckoutScreen extends ConsumerWidget {
                 ),
                 const Spacer(),
                 ElevatedButton(
-                  onPressed: purchaseState is AsyncLoading
+                  onPressed: purchaseState is AsyncLoading || selectedTickets.isEmpty
                       ? null
                       : () async {
                           final success = await ref
                               .read(purchaseTicketProvider.notifier)
-                              .purchase(eventId);
+                              .purchase(eventId, selectedTickets);
                           if (success && context.mounted) {
                             ScaffoldMessenger.of(context).showSnackBar(
                               const SnackBar(content: Text('Payment Successful!')),

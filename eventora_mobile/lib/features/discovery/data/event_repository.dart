@@ -13,10 +13,10 @@ class EventRepository {
 
   EventRepository(this._dio);
 
-  Future<List<Event>> getEvents() async {
+  Future<List<Event>> getEvents({Map<String, dynamic>? filters}) async {
     try {
       // Use the generic /events endpoint without auth for public discovery
-      final response = await _dio.get(ApiConstants.events);
+      final response = await _dio.get(ApiConstants.events, queryParameters: filters);
       
       // Assuming Laravel API pagination wrapper, data is in ['data']
       final data = response.data['data'] as List;

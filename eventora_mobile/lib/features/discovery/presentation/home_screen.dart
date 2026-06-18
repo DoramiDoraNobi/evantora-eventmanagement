@@ -1,7 +1,9 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:go_router/go_router.dart';
+import 'package:cached_network_image/cached_network_image.dart';
 import 'event_controller.dart';
+import 'filter_sheet.dart';
 import '../../auth/presentation/auth_controller.dart';
 
 class HomeScreen extends ConsumerWidget {
@@ -15,6 +17,17 @@ class HomeScreen extends ConsumerWidget {
       appBar: AppBar(
         title: const Text('Discover Events'),
         actions: [
+          IconButton(
+            icon: const Icon(Icons.filter_list),
+            onPressed: () {
+              showModalBottomSheet(
+                context: context,
+                isScrollControlled: true,
+                useSafeArea: true,
+                builder: (context) => const FilterSheet(),
+              );
+            },
+          ),
           IconButton(
             icon: const Icon(Icons.logout),
             onPressed: () {
@@ -47,14 +60,28 @@ class HomeScreen extends ConsumerWidget {
                     child: Column(
                       crossAxisAlignment: CrossAxisAlignment.stretch,
                       children: [
-                        // Placeholder image for event
-                        Container(
-                          height: 160,
-                          color: Theme.of(context).colorScheme.primaryContainer,
-                          child: Icon(
-                            Icons.image,
-                            size: 64,
-                            color: Theme.of(context).colorScheme.onPrimaryContainer.withOpacity(0.5),
+                        // Hero Image
+                        Hero(
+                          tag: 'event-image-${event.id}',
+                          child: CachedNetworkImage(
+                            imageUrl: 'https://picsum.photos/seed/${event.id}/800/400',
+                            height: 160,
+                            width: double.infinity,
+                            fit: BoxFit.cover,
+                            placeholder: (context, url) => Container(
+                              height: 160,
+                              color: Theme.of(context).colorScheme.surfaceContainerHighest,
+                              child: const Center(child: CircularProgressIndicator()),
+                            ),
+                            errorWidget: (context, url, error) => Container(
+                              height: 160,
+                              color: Theme.of(context).colorScheme.primaryContainer,
+                              child: Icon(
+                                Icons.image,
+                                size: 64,
+                                color: Theme.of(context).colorScheme.onPrimaryContainer.withValues(alpha: 0.5),
+                              ),
+                            ),
                           ),
                         ),
                         Padding(

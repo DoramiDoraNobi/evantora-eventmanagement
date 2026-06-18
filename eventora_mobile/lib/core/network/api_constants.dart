@@ -1,8 +1,8 @@
 class ApiConstants {
   // Use 10.0.2.2 for Android Emulator connecting to local host
   // Use 127.0.0.1 for iOS Simulator connecting to local host
-  // Using 10.0.2.2 as default for Laragon on Android Emulator
-  static const String baseUrl = 'http://10.0.2.2:8000/api/v1';
+  // Updated to use your local IP address for physical device testing
+  static const String baseUrl = 'http://192.168.1.8:8000/api/v1';
   
   static const String login = '/auth/login';
   static const String register = '/auth/register';

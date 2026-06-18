@@ -44,11 +44,11 @@ class OrganizerEvent {
 
   factory OrganizerEvent.fromJson(Map<String, dynamic> json) {
     return OrganizerEvent(
-      id: json['id'],
-      title: json['title'],
+      id: json['id'] ?? 0,
+      title: json['title'] ?? 'Untitled',
       slug: json['slug'] ?? '',
-      date: json['date'],
-      venue: json['venue'],
+      date: json['start_date'] ?? json['date'] ?? '',
+      venue: json['venue_name'] ?? json['venue'] ?? 'TBA',
       capacity: json['capacity'] ?? 0,
       ticketsSold: json['tickets_sold'] ?? json['tickets_count'] ?? 0,
       status: json['status'] ?? 'active',

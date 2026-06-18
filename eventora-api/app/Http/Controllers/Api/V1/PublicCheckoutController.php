@@ -20,7 +20,9 @@ class PublicCheckoutController extends Controller
     public function checkout(Request $request, $slug)
     {
         $event = Event::with('organization')
-            ->where('slug', $slug)
+            ->where(function ($q) use ($slug) {
+                $q->where('id', $slug)->orWhere('slug', $slug);
+            })
             ->where('status', 'published')
             ->whereHas('organization', fn($q) => $q->where('is_active', true))
             ->firstOrFail();
@@ -109,10 +111,111 @@ class PublicCheckoutController extends Controller
             });
 
             $result->load(['attendees.ticket', 'event.organization']);
-            return new OrderResource($result);
+            
+            $response = [
+                'order' => new OrderResource($result)
+            ];
+
+            // Setup Stripe PaymentIntent if total > 0
+            if ($result->total > 0) {
+                if (!$organization->stripe_account_id) {
+                    throw new \Exception('The event organizer cannot accept payments at this time.');
+                }
+
+                \Stripe\Stripe::setApiKey(env('STRIPE_SECRET'));
+                
+                $platformFeePercent = env('PLATFORM_FEE_PERCENT', 5);
+                $feeAmountCents = (int) ($result->total * ($platformFeePercent / 100) * 100);
+
+                $paymentIntentParams = [
+                    'amount' => (int) ($result->total * 100),
+                    'currency' => strtolower($organization->currency),
+                    'metadata' => [
+                        'order_id' => $result->id,
+                        'event_id' => $event->id,
+                    ],
+                ];
+
+                $paymentIntentOptions = [];
+
+                // Only use Stripe Connect features if it's a real connected account (not our dummy test one)
+                if ($organization->stripe_account_id && $organization->stripe_account_id !== 'acct_123456789') {
+                    $paymentIntentParams['application_fee_amount'] = $feeAmountCents;
+                    $paymentIntentOptions['stripe_account'] = $organization->stripe_account_id;
+                    $response['stripe_account'] = $organization->stripe_account_id;
+                }
+
+                $paymentIntent = \Stripe\PaymentIntent::create($paymentIntentParams, $paymentIntentOptions);
+
+                $response['client_secret'] = $paymentIntent->client_secret;
+                $response['publishable_key'] = env('STRIPE_KEY');
+            }
+
+            return response()->json($response);
 
         } catch (\Exception $e) {
             return response()->json(['message' => $e->getMessage()], 422);
+        }
+    }
+
+    /**
+     * POST /api/v1/orders/{orderNumber}/verify-payment — Verify mobile payment intent
+     */
+    public function verifyPayment(Request $request, $orderNumber)
+    {
+        $request->validate([
+            'payment_intent_id' => 'required|string',
+        ]);
+
+        $order = Order::with(['attendees', 'event.organization'])
+            ->where('order_number', $orderNumber)
+            ->firstOrFail();
+
+        if ($order->status === 'paid') {
+            return response()->json(['message' => 'Order is already paid', 'order' => new OrderResource($order)]);
+        }
+
+        try {
+            \Stripe\Stripe::setApiKey(env('STRIPE_SECRET'));
+            
+            $stripeAccount = $order->event->organization->stripe_account_id;
+            $paymentIntent = \Stripe\PaymentIntent::retrieve(
+                $request->payment_intent_id,
+                ($stripeAccount && $stripeAccount !== 'acct_123456789') ? ['stripe_account' => $stripeAccount] : []
+            );
+
+            if ($paymentIntent->status === 'succeeded') {
+                DB::transaction(function () use ($order, $paymentIntent) {
+                    $order->update([
+                        'status' => 'paid',
+                        'paid_at' => now(),
+                    ]);
+
+                    foreach ($order->attendees as $attendee) {
+                        $attendee->update(['status' => 'confirmed']);
+                    }
+
+                    if (!$order->payments()->exists()) {
+                        $order->payments()->create([
+                            'organization_id' => $order->organization_id,
+                            'gateway' => 'stripe',
+                            'gateway_payment_id' => $paymentIntent->id,
+                            'amount' => $order->total,
+                            'currency' => $order->currency,
+                            'status' => 'completed',
+                            'paid_at' => now(),
+                        ]);
+                    }
+                });
+
+                $order->refresh();
+                return response()->json(['message' => 'Payment verified successfully', 'order' => new OrderResource($order)]);
+            }
+
+            return response()->json(['message' => 'Payment not successful yet'], 400);
+
+        } catch (\Exception $e) {
+            return response()->json(['message' => 'Error verifying payment: ' . $e->getMessage()], 422);
         }
     }
 

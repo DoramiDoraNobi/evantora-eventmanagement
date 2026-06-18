@@ -11,6 +11,10 @@ final selectedOrgIdProvider = NotifierProvider<SelectedOrgIdNotifier, int>(() {
 class SelectedOrgIdNotifier extends Notifier<int> {
   @override
   int build() => 0;
+
+  void select(int id) {
+    state = id;
+  }
 }
 
 final dashboardProvider = FutureProvider<DashboardStats>((ref) async {

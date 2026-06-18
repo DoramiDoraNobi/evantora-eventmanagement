@@ -1,9 +1,9 @@
-import 'package:flutter/material.dart';
 import 'package:go_router/go_router.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import '../features/auth/presentation/login_screen.dart';
 import '../features/auth/presentation/register_screen.dart';
 import '../features/discovery/presentation/home_screen.dart';
+import '../features/discovery/presentation/main_screen.dart';
 import '../features/discovery/presentation/event_detail_screen.dart';
 import '../features/tickets/presentation/checkout_screen.dart';
 import '../features/tickets/presentation/my_tickets_screen.dart';
@@ -25,9 +25,36 @@ final routerProvider = Provider<GoRouter>((ref) {
         path: '/register',
         builder: (context, state) => const RegisterScreen(),
       ),
-      GoRoute(
-        path: '/home',
-        builder: (context, state) => const HomeScreen(),
+      StatefulShellRoute.indexedStack(
+        builder: (context, state, navigationShell) {
+          return MainScreen(navigationShell: navigationShell);
+        },
+        branches: [
+          StatefulShellBranch(
+            routes: [
+              GoRoute(
+                path: '/home',
+                builder: (context, state) => const HomeScreen(),
+              ),
+            ],
+          ),
+          StatefulShellBranch(
+            routes: [
+              GoRoute(
+                path: '/my-tickets',
+                builder: (context, state) => const MyTicketsScreen(),
+              ),
+            ],
+          ),
+          StatefulShellBranch(
+            routes: [
+              GoRoute(
+                path: '/organizer',
+                builder: (context, state) => const OrganizerDashboardScreen(),
+              ),
+            ],
+          ),
+        ],
       ),
       GoRoute(
         path: '/event/:id',
@@ -40,12 +67,9 @@ final routerProvider = Provider<GoRouter>((ref) {
         path: '/checkout/:eventId',
         builder: (context, state) {
           final eventId = int.parse(state.pathParameters['eventId']!);
-          return CheckoutScreen(eventId: eventId);
+          final selectedTickets = state.extra as Map<int, int>? ?? {};
+          return CheckoutScreen(eventId: eventId, selectedTickets: selectedTickets);
         },
-      ),
-      GoRoute(
-        path: '/my-tickets',
-        builder: (context, state) => const MyTicketsScreen(),
       ),
       GoRoute(
         path: '/ticket/:id',
@@ -53,10 +77,6 @@ final routerProvider = Provider<GoRouter>((ref) {
           final ticket = state.extra as Ticket;
           return TicketDetailScreen(ticket: ticket);
         },
-      ),
-      GoRoute(
-        path: '/organizer',
-        builder: (context, state) => const OrganizerDashboardScreen(),
       ),
       GoRoute(
         path: '/organizer/events',

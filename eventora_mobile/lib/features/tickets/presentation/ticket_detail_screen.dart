@@ -64,32 +64,42 @@ class TicketDetailScreen extends StatelessWidget {
                     ),
                     const SizedBox(height: 32),
                     Row(
-                      mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                      crossAxisAlignment: CrossAxisAlignment.start,
                       children: [
-                        Column(
-                          crossAxisAlignment: CrossAxisAlignment.start,
-                          children: [
-                            Text('Status', style: Theme.of(context).textTheme.bodySmall),
-                            Text(
-                              ticket.status.toUpperCase(),
-                              style: Theme.of(context).textTheme.titleMedium?.copyWith(
-                                    color: ticket.status == 'valid' ? Colors.green : Colors.red,
-                                    fontWeight: FontWeight.bold,
-                                  ),
-                            ),
-                          ],
+                        Expanded(
+                          child: Column(
+                            crossAxisAlignment: CrossAxisAlignment.start,
+                            children: [
+                              Text('Status', style: Theme.of(context).textTheme.bodySmall),
+                              Text(
+                                ticket.status.toUpperCase(),
+                                style: Theme.of(context).textTheme.titleMedium?.copyWith(
+                                      color: ticket.status == 'confirmed' || ticket.status == 'checked_in'
+                                          ? Colors.green
+                                          : ticket.status == 'registered'
+                                              ? Colors.orange
+                                              : Colors.red,
+                                      fontWeight: FontWeight.bold,
+                                    ),
+                              ),
+                            ],
+                          ),
                         ),
-                        Column(
-                          crossAxisAlignment: CrossAxisAlignment.end,
-                          children: [
-                            Text('Venue', style: Theme.of(context).textTheme.bodySmall),
-                            Text(
-                              ticket.event?.venue ?? 'TBD',
-                              style: Theme.of(context).textTheme.titleMedium?.copyWith(
-                                    fontWeight: FontWeight.bold,
-                                  ),
-                            ),
-                          ],
+                        const SizedBox(width: 16),
+                        Expanded(
+                          child: Column(
+                            crossAxisAlignment: CrossAxisAlignment.end,
+                            children: [
+                              Text('Venue', style: Theme.of(context).textTheme.bodySmall),
+                              Text(
+                                ticket.event?.venue ?? 'TBD',
+                                textAlign: TextAlign.right,
+                                style: Theme.of(context).textTheme.titleMedium?.copyWith(
+                                      fontWeight: FontWeight.bold,
+                                    ),
+                              ),
+                            ],
+                          ),
                         ),
                       ],
                     ),

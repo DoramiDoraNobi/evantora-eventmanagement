@@ -162,19 +162,19 @@ class _StatusChip extends StatelessWidget {
     switch (status.toLowerCase()) {
       case 'active':
       case 'published':
-        bgColor = const Color(0xFF10B981).withOpacity(0.15);
+        bgColor = const Color(0xFF10B981).withValues(alpha: 0.15);
         textColor = const Color(0xFF10B981);
         break;
       case 'draft':
-        bgColor = const Color(0xFF6B7280).withOpacity(0.15);
+        bgColor = const Color(0xFF6B7280).withValues(alpha: 0.15);
         textColor = const Color(0xFF6B7280);
         break;
       case 'cancelled':
-        bgColor = const Color(0xFFEF4444).withOpacity(0.15);
+        bgColor = const Color(0xFFEF4444).withValues(alpha: 0.15);
         textColor = const Color(0xFFEF4444);
         break;
       default:
-        bgColor = const Color(0xFF6366F1).withOpacity(0.15);
+        bgColor = const Color(0xFF6366F1).withValues(alpha: 0.15);
         textColor = const Color(0xFF6366F1);
     }
 

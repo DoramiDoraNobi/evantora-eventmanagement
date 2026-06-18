@@ -50,8 +50,8 @@ class _LoginScreenState extends ConsumerState<LoginScreen> {
         final user = next.value!;
         if (user.isOrganizer) {
           // Set the active organization for organizer dashboard
-          ref.read(selectedOrgIdProvider.notifier).state =
-              user.organizations.first.id;
+          ref.read(selectedOrgIdProvider.notifier).select(
+              user.organizations.first.id);
           context.go('/organizer');
         } else {
           // Route to Buyer Home

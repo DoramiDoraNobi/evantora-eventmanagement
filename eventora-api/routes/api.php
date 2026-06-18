@@ -58,6 +58,7 @@ Route::prefix('v1')->middleware('throttle:api')->group(function () {
 
         // --- Checkout (auth optional but available) ---
         Route::post('events/{slug}/checkout', [PublicCheckoutController::class, 'checkout']);
+        Route::post('orders/{orderNumber}/verify-payment', [PublicCheckoutController::class, 'verifyPayment']);
 
         // --- Buyer Routes ---
         Route::prefix('buyer')->group(function () {

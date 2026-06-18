@@ -13,10 +13,6 @@ class MyTicketsScreen extends ConsumerWidget {
     return Scaffold(
       appBar: AppBar(
         title: const Text('My Tickets'),
-        leading: IconButton(
-          icon: const Icon(Icons.arrow_back),
-          onPressed: () => context.go('/home'),
-        ),
       ),
       body: ticketsAsync.when(
         data: (tickets) {

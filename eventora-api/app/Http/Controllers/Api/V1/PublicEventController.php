@@ -36,6 +36,27 @@ class PublicEventController extends Controller
             $query->where('type', $request->type);
         }
 
+        // Location filter
+        if ($request->filled('location')) {
+            $query->where(function ($q) use ($request) {
+                $q->where('venue_city', 'like', "%{$request->location}%")
+                  ->orWhere('venue_name', 'like', "%{$request->location}%");
+            });
+        }
+
+        // Price filter
+        if ($request->filled('min_price') || $request->filled('max_price')) {
+            $query->whereHas('tickets', function ($q) use ($request) {
+                $q->where('is_active', true);
+                if ($request->filled('min_price')) {
+                    $q->where('price', '>=', $request->min_price);
+                }
+                if ($request->filled('max_price')) {
+                    $q->where('price', '<=', $request->max_price);
+                }
+            });
+        }
+
         $events = $query->orderBy('start_date', 'asc')->paginate($request->get('per_page', 15));
 
         return EventResource::collection($events);
@@ -44,13 +65,15 @@ class PublicEventController extends Controller
     /**
      * GET /api/v1/events/{slug} — Event detail with tickets
      */
-    public function show($slug)
+    public function show($identifier)
     {
         $event = Event::with([
                 'organization',
                 'tickets' => fn($q) => $q->where('is_active', true)->orderBy('sort_order'),
             ])
-            ->where('slug', $slug)
+            ->where(function ($q) use ($identifier) {
+                $q->where('id', $identifier)->orWhere('slug', $identifier);
+            })
             ->where('status', 'published')
             ->whereHas('organization', fn($q) => $q->where('is_active', true))
             ->withCount('attendees')
