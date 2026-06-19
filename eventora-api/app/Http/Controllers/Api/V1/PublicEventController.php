@@ -14,14 +14,27 @@ class PublicEventController extends Controller
     /**
      * GET /api/v1/events — Browse published events
      */
-    public function index(Request $request)
+            public function index(Request $request)
     {
         $query = Event::with(['organization', 'tickets' => fn($q) => $q->where('is_active', true)])
             ->where('status', 'published')
-            ->where(function ($q) {
-                $q->whereNull('end_date')->orWhere('end_date', '>=', now());
-            })
             ->whereHas('organization', fn($q) => $q->where('is_active', true));
+
+        // Date filter
+        $filter = $request->input('filter');
+        if ($filter == 'today') {
+            $query->whereDate('start_date', now()->toDateString());
+        } elseif ($filter == '14_days') {
+            $query->whereDate('start_date', '>=', now()->toDateString())
+                  ->whereDate('start_date', '<=', now()->addDays(14)->toDateString());
+        } elseif ($filter == '30_days') {
+            $query->whereDate('start_date', '>=', now()->toDateString())
+                  ->whereDate('start_date', '<=', now()->addDays(30)->toDateString());
+        } else {
+            $query->where(function ($q) {
+                $q->whereNull('end_date')->orWhere('end_date', '>=', now());
+            });
+        }
 
         // Search filter
         if ($request->filled('search')) {
@@ -33,7 +46,7 @@ class PublicEventController extends Controller
 
         // Type filter
         if ($request->filled('type')) {
-            $query->where('type', $request->type);
+            $query->where('type', $request->input('type'));
         }
 
         // Location filter
@@ -57,7 +70,13 @@ class PublicEventController extends Controller
             });
         }
 
-        $events = $query->orderBy('start_date', 'asc')->paginate($request->get('per_page', 15));
+        if ($request->input('sort') == 'latest') {
+            $query->orderBy('created_at', 'desc');
+        } else {
+            $query->orderBy('start_date', 'asc');
+        }
+
+        $events = $query->paginate($request->get('per_page', 15));
 
         return EventResource::collection($events);
     }

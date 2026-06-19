@@ -50,7 +50,7 @@ class MailNotificationTest extends TestCase
             'status' => 'paid',
         ]);
 
-        Mail::to($order->buyer_email)->send(new OrderConfirmationMail($order));
+        Mail::to($order->buyer_email)->queue(new OrderConfirmationMail($order));
 
         Mail::assertQueued(OrderConfirmationMail::class, function ($mail) use ($order) {
             return $mail->order->id === $order->id &&
@@ -89,6 +89,10 @@ class MailNotificationTest extends TestCase
         // Set yesterday's date
         $yesterday = Carbon::yesterday();
 
+        // Ensure settings opt-in for daily sales
+        $org->settings = ['notify_daily_sales' => true];
+        $org->save();
+
         // 4. Create Paid Order from yesterday
         $order = Order::create([
             'organization_id' => $org->id,
@@ -125,6 +129,7 @@ class MailNotificationTest extends TestCase
         ]);
 
         // 6. Execute the daily summary command
+        \Carbon\Carbon::setTestNow($yesterday->copy()->addDay());
         $this->artisan('app:send-daily-sales')
             ->assertExitCode(0);
 

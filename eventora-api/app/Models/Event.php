@@ -10,6 +10,15 @@ class Event extends Model
     use HasFactory;
     protected $guarded = [];
 
+    protected $casts = [
+        'tags' => 'array',
+        'settings' => 'array',
+        'start_date' => 'datetime',
+        'end_date' => 'datetime',
+        'registration_deadline' => 'datetime',
+        'published_at' => 'datetime',
+    ];
+
     //
     public function organization()
     {
@@ -31,4 +40,3 @@ class Event extends Model
         return $this->hasMany(Attendee::class);
     }
 }
-

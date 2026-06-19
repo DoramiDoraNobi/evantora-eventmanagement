@@ -263,6 +263,27 @@
                         <a href="{{ route('buyer.register') }}" class="inline-flex items-center justify-center rounded-lg border border-[#ddcfb8] bg-[#fffaf1] px-5 py-3 text-sm font-black text-[#2b2118] hover:border-[#b9674f] md:w-auto">Create buyer account</a>
                     @endauth
                 </div>
+                <div class="mb-6 flex flex-wrap gap-4 items-center">
+                    <form method="GET" action="{{ route('public.home') }}#events" class="flex flex-wrap gap-4 items-center w-full">
+                        <select name="sort" onchange="this.form.submit()" class="rounded-lg border border-[#ddcfb8] bg-[#fffaf1] px-4 py-2 text-sm font-semibold text-[#2b2118] focus:border-[#6f8f72] focus:ring-0">
+                            <option value="">Relevance</option>
+                            <option value="latest" {{ request('sort') == 'latest' ? 'selected' : '' }}>Latest Events</option>
+                        </select>
+                        <select name="filter" onchange="this.form.submit()" class="rounded-lg border border-[#ddcfb8] bg-[#fffaf1] px-4 py-2 text-sm font-semibold text-[#2b2118] focus:border-[#6f8f72] focus:ring-0">
+                            <option value="">All Dates</option>
+                            <option value="today" {{ request('filter') == 'today' ? 'selected' : '' }}>Today</option>
+                            <option value="14_days" {{ request('filter') == '14_days' ? 'selected' : '' }}>Next 14 Days</option>
+                            <option value="30_days" {{ request('filter') == '30_days' ? 'selected' : '' }}>Next 30 Days</option>
+                        </select>
+
+                        <select name="type" onchange="this.form.submit()" class="rounded-lg border border-[#ddcfb8] bg-[#fffaf1] px-4 py-2 text-sm font-semibold text-[#2b2118] focus:border-[#6f8f72] focus:ring-0">
+                            <option value="">All Types</option>
+                            <option value="offline" {{ request('type') == 'offline' ? 'selected' : '' }}>Offline / In-person</option>
+                            <option value="online" {{ request('type') == 'online' ? 'selected' : '' }}>Online / Virtual</option>
+                            <option value="hybrid" {{ request('type') == 'hybrid' ? 'selected' : '' }}>Hybrid</option>
+                        </select>
+                    </form>
+                </div>
 
                 @if($events->count() > 0)
                     <div class="grid gap-5 md:grid-cols-2 lg:grid-cols-3">
