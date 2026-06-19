@@ -84,7 +84,7 @@ class SendDailySalesSummary extends Command
             $recipientEmail = $owner?->email ?? $org->email;
             
             if ($recipientEmail) {
-                Mail::to($recipientEmail)->send(new DailySalesSummaryMail(
+                Mail::to($recipientEmail)->queue(new DailySalesSummaryMail(
                     $org,
                     $dateString,
                     $totalSales,

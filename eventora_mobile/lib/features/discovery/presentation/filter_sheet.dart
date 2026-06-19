@@ -13,6 +13,10 @@ class _FilterSheetState extends ConsumerState<FilterSheet> {
   final TextEditingController _locationController = TextEditingController();
   RangeValues _priceRange = const RangeValues(0, 1000);
   
+  String _selectedDateFilter = '';
+  String _selectedType = '';
+  String _sort = '';
+
   @override
   void initState() {
     super.initState();
@@ -20,6 +24,15 @@ class _FilterSheetState extends ConsumerState<FilterSheet> {
     final filters = ref.read(eventFilterProvider);
     if (filters['location'] != null) {
       _locationController.text = filters['location'];
+    }
+    if (filters['filter'] != null) {
+      _selectedDateFilter = filters['filter'];
+    }
+    if (filters['type'] != null) {
+      _selectedType = filters['type'];
+    }
+    if (filters['sort'] != null) {
+      _sort = filters['sort'];
     }
     double minPrice = filters['min_price'] != null ? (filters['min_price'] as num).toDouble() : 0;
     double maxPrice = filters['max_price'] != null ? (filters['max_price'] as num).toDouble() : 1000;
@@ -39,6 +52,18 @@ class _FilterSheetState extends ConsumerState<FilterSheet> {
       filters['location'] = _locationController.text.trim();
     }
     
+    if (_selectedDateFilter.isNotEmpty) {
+      filters['filter'] = _selectedDateFilter;
+    }
+
+    if (_selectedType.isNotEmpty) {
+      filters['type'] = _selectedType;
+    }
+
+    if (_sort.isNotEmpty) {
+      filters['sort'] = _sort;
+    }
+
     if (_priceRange.start > 0) {
       filters['min_price'] = _priceRange.start.toInt();
     }
@@ -93,6 +118,79 @@ class _FilterSheetState extends ConsumerState<FilterSheet> {
                 prefixIcon: Icon(Icons.location_on_outlined),
                 border: OutlineInputBorder(),
               ),
+            ),
+            const SizedBox(height: 16),
+            Text(
+              'Sort By',
+              style: Theme.of(context).textTheme.titleMedium,
+            ),
+            const SizedBox(height: 8),
+            DropdownButtonFormField<String>(
+              value: _sort.isEmpty ? null : _sort,
+              decoration: const InputDecoration(
+                border: OutlineInputBorder(),
+                contentPadding: EdgeInsets.symmetric(horizontal: 16, vertical: 8),
+              ),
+              hint: const Text('Relevance'),
+              items: const [
+                DropdownMenuItem(value: '', child: Text('Relevance')),
+                DropdownMenuItem(value: 'latest', child: Text('Latest Events (Terbaru)')),
+              ],
+              onChanged: (value) {
+                setState(() {
+                  _sort = value ?? '';
+                });
+              },
+            ),
+            const SizedBox(height: 16),
+            Text(
+              'Date',
+              style: Theme.of(context).textTheme.titleMedium,
+            ),
+            const SizedBox(height: 8),
+            DropdownButtonFormField<String>(
+              value: _selectedDateFilter.isEmpty ? null : _selectedDateFilter,
+              decoration: const InputDecoration(
+                border: OutlineInputBorder(),
+                contentPadding: EdgeInsets.symmetric(horizontal: 16, vertical: 8),
+              ),
+              hint: const Text('All Dates'),
+              items: const [
+                DropdownMenuItem(value: '', child: Text('All Dates')),
+                DropdownMenuItem(value: 'today', child: Text('Today')),
+                DropdownMenuItem(value: '14_days', child: Text('Next 14 Days')),
+                DropdownMenuItem(value: '30_days', child: Text('Next 30 Days')),
+              ],
+              onChanged: (value) {
+                setState(() {
+                  _selectedDateFilter = value ?? '';
+                });
+              },
+            ),
+            const SizedBox(height: 16),
+            Text(
+              'Type',
+              style: Theme.of(context).textTheme.titleMedium,
+            ),
+            const SizedBox(height: 8),
+            DropdownButtonFormField<String>(
+              value: _selectedType.isEmpty ? null : _selectedType,
+              decoration: const InputDecoration(
+                border: OutlineInputBorder(),
+                contentPadding: EdgeInsets.symmetric(horizontal: 16, vertical: 8),
+              ),
+              hint: const Text('All Types'),
+              items: const [
+                DropdownMenuItem(value: '', child: Text('All Types')),
+                DropdownMenuItem(value: 'offline', child: Text('Offline / In-person')),
+                DropdownMenuItem(value: 'online', child: Text('Online / Virtual')),
+                DropdownMenuItem(value: 'hybrid', child: Text('Hybrid')),
+              ],
+              onChanged: (value) {
+                setState(() {
+                  _selectedType = value ?? '';
+                });
+              },
             ),
             const SizedBox(height: 24),
             Text(

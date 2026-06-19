@@ -14,19 +14,45 @@ use Illuminate\Support\Str;
 
 class PublicEventController extends Controller
 {
-    public function index()
+            public function index(Request $request)
     {
-        $events = Event::with(['organization', 'tickets'])
+        $query = Event::with(['organization', 'tickets'])
             ->where('status', 'published')
-            ->where(function ($query) {
-                $query->whereNull('end_date')
-                    ->orWhere('end_date', '>=', now());
-            })
             ->whereHas('organization', function ($query) {
                 $query->where('is_active', true);
-            })
-            ->orderBy('start_date', 'asc')
-            ->paginate(6);
+            });
+
+        // Filters
+        $filter = $request->input('filter');
+        $type = $request->input('type');
+        $sort = $request->input('sort');
+
+        if ($filter == 'today') {
+            $query->whereDate('start_date', now()->toDateString());
+        } elseif ($filter == '14_days') {
+            $query->whereDate('start_date', '>=', now()->toDateString())
+                  ->whereDate('start_date', '<=', now()->addDays(14)->toDateString());
+        } elseif ($filter == '30_days') {
+            $query->whereDate('start_date', '>=', now()->toDateString())
+                  ->whereDate('start_date', '<=', now()->addDays(30)->toDateString());
+        } else {
+            $query->where(function ($q) {
+                $q->whereNull('end_date')
+                  ->orWhere('end_date', '>=', now());
+            });
+        }
+
+        if ($type) {
+            $query->where('type', $type);
+        }
+
+        if ($sort == 'latest') {
+            $query->orderBy('created_at', 'desc');
+        } else {
+            $query->orderBy('start_date', 'asc');
+        }
+
+        $events = $query->paginate(6)->withQueryString();
 
         $stats = [
             'events' => Event::where('status', 'published')->count(),
