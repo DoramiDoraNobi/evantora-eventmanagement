@@ -125,6 +125,7 @@ class PublicEventController extends Controller
             'attendees' => 'required|array',
             'attendees.*.name' => 'required|string|max:255',
             'attendees.*.email' => 'required|email|max:255',
+            'payment_method' => 'nullable|string|in:midtrans,stripe,paypal',
         ]);
 
         $totalRequestedTickets = 0;
@@ -244,6 +245,55 @@ class PublicEventController extends Controller
             return redirect()->route('public.order.success', $order->order_number);
         }
 
+        // --- PAYMENT GATEWAY INTEGRATION ---
+        $paymentMethod = $validated['payment_method'] ?? 'midtrans';
+
+        if ($paymentMethod === 'midtrans') {
+            try {
+                $midtransService = app(\App\Services\MidtransService::class);
+                
+                $customerDetails = [
+                    'first_name' => $validated['buyer_name'],
+                    'email' => $validated['buyer_email'],
+                    'phone' => $validated['buyer_phone'] ?? '08111111111',
+                ];
+                
+                $itemDetails = [];
+                foreach ($orderTickets as $ot) {
+                    $itemDetails[] = [
+                        'id' => $ot['ticket']->id,
+                        'price' => round($ot['ticket']->price),
+                        'quantity' => $ot['quantity'],
+                        'name' => substr($ot['ticket']->name, 0, 50),
+                    ];
+                }
+
+                $snap = $midtransService->createTransaction($order, $customerDetails, $itemDetails);
+                
+                return redirect($snap['redirect_url']);
+            } catch (\Exception $e) {
+                // Un-reserve tickets manually
+                foreach ($orderTickets as $ot) {
+                    $ot['ticket']->decrement('quantity_sold', $ot['quantity']);
+                }
+                $order->delete();
+                return redirect()->back()->with('error', 'Midtrans Error: ' . $e->getMessage());
+            }
+        } elseif ($paymentMethod === 'paypal') {
+             try {
+                $paypalService = app(\App\Services\PayPalService::class);
+                $paypalOrder = $paypalService->createOrder($order->total, $organization->currency);
+                // Redirect user to PayPal approve link
+                return redirect($paypalOrder['approve_link']);
+             } catch (\Exception $e) {
+                 foreach ($orderTickets as $ot) {
+                    $ot['ticket']->decrement('quantity_sold', $ot['quantity']);
+                }
+                $order->delete();
+                return redirect()->back()->with('error', 'PayPal Error: ' . $e->getMessage());
+             }
+        }
+
         // --- STRIPE CONNECT INTEGRATION ---
         if (!$organization->stripe_account_id) {
             // Un-reserve the tickets manually since we're outside transaction and aborting
@@ -251,7 +301,7 @@ class PublicEventController extends Controller
                 $ot['ticket']->decrement('quantity_sold', $ot['quantity']);
             }
             $order->delete();
-            return redirect()->back()->with('error', 'The event organizer cannot accept payments at this time. Please contact them.');
+            return redirect()->back()->with('error', 'The event organizer cannot accept payments via Stripe at this time. Please contact them.');
         }
 
         \Stripe\Stripe::setApiKey(env('STRIPE_SECRET'));
@@ -310,7 +360,11 @@ class PublicEventController extends Controller
         $order = Order::with('attendees.ticket', 'event.organization')->where('order_number', $orderNumber)->firstOrFail();
         
         $sessionId = $request->query('session_id');
+        $midtransOrderId = $request->query('order_id');
+        $paypalToken = $request->query('token');
+
         if ($sessionId && $order->status === 'pending') {
+            // Stripe Verification
             try {
                 \Stripe\Stripe::setApiKey(env('STRIPE_SECRET'));
                 
@@ -355,6 +409,82 @@ class PublicEventController extends Controller
                 }
             } catch (\Exception $e) {
                 \Illuminate\Support\Facades\Log::error('Stripe Sync Error: ' . $e->getMessage());
+            }
+        }
+        
+        if ($order->status === 'pending' && $midtransOrderId) {
+            // Midtrans Verification
+            try {
+                $midtransService = app(\App\Services\MidtransService::class);
+                $status = $midtransService->getTransactionStatus($order->order_number);
+                
+                if ($status && in_array($status['transaction_status'], ['capture', 'settlement'])) {
+                    \Illuminate\Support\Facades\DB::transaction(function () use ($order, $status) {
+                        $order->update([
+                            'status' => 'paid',
+                            'paid_at' => now(),
+                        ]);
+                        
+                        foreach ($order->attendees as $attendee) {
+                            $attendee->update(['status' => 'confirmed']);
+                        }
+                        
+                        if (!$order->payments()->exists()) {
+                            $order->payments()->create([
+                                'organization_id' => $order->organization_id,
+                                'gateway' => 'midtrans',
+                                'gateway_payment_id' => $status['transaction_id'] ?? $order->order_number,
+                                'amount' => $order->total,
+                                'currency' => $order->currency,
+                                'status' => 'completed',
+                                'paid_at' => now(),
+                            ]);
+                        }
+                    });
+                    
+                    dispatch(new SendOrderConfirmationJob($order));
+                    $order->refresh();
+                }
+            } catch (\Exception $e) {
+                \Illuminate\Support\Facades\Log::error('Midtrans Sync Error: ' . $e->getMessage());
+            }
+        }
+
+        if ($order->status === 'pending' && $paypalToken) {
+            // PayPal Verification
+            try {
+                $paypalService = app(\App\Services\PayPalService::class);
+                $captureResult = $paypalService->capturePayment($paypalToken);
+                
+                if ($captureResult['status'] === 'COMPLETED') {
+                     \Illuminate\Support\Facades\DB::transaction(function () use ($order, $paypalToken) {
+                        $order->update([
+                            'status' => 'paid',
+                            'paid_at' => now(),
+                        ]);
+                        
+                        foreach ($order->attendees as $attendee) {
+                            $attendee->update(['status' => 'confirmed']);
+                        }
+                        
+                        if (!$order->payments()->exists()) {
+                            $order->payments()->create([
+                                'organization_id' => $order->organization_id,
+                                'gateway' => 'paypal',
+                                'gateway_payment_id' => $paypalToken,
+                                'amount' => $order->total,
+                                'currency' => $order->currency,
+                                'status' => 'completed',
+                                'paid_at' => now(),
+                            ]);
+                        }
+                    });
+                    
+                    dispatch(new SendOrderConfirmationJob($order));
+                    $order->refresh();
+                }
+            } catch (\Exception $e) {
+                \Illuminate\Support\Facades\Log::error('PayPal Sync Error: ' . $e->getMessage());
             }
         }
         

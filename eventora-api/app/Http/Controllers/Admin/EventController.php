@@ -3,6 +3,7 @@
 namespace App\Http\Controllers\Admin;
 
 use App\Http\Controllers\Controller;
+use App\Models\Category;
 use App\Models\Event;
 use Illuminate\Http\Request;
 use Illuminate\Support\Str;
@@ -12,13 +13,14 @@ class EventController extends Controller
     public function index()
     {
         $organization = app('current_organization');
-        $events = $organization->events()->latest()->paginate(10);
+        $events = $organization->events()->with('category')->latest()->paginate(10);
         return view('admin.events.index', compact('events', 'organization'));
     }
 
     public function create()
     {
-        return view('admin.events.create');
+        $categories = Category::active()->ordered()->get();
+        return view('admin.events.create', compact('categories'));
     }
 
     public function store(Request $request)
@@ -28,6 +30,7 @@ class EventController extends Controller
         $validated = $request->validate([
             'title' => 'required|string|max:255',
             'type' => 'required|in:offline,online,hybrid',
+            'category_id' => 'nullable|exists:categories,id',
             'start_date' => 'required|date',
             'end_date' => 'required|date|after_or_equal:start_date',
             'timezone' => 'required|string|max:50',
@@ -35,7 +38,12 @@ class EventController extends Controller
             'venue_name' => 'nullable|required_if:type,offline,hybrid|string|max:255',
             'online_url' => 'nullable|required_if:type,online,hybrid|url|max:500',
             'hero_image' => 'nullable|image|mimes:jpeg,png,jpg,gif,webp|max:2048',
+            'is_taxable' => 'nullable|boolean',
+            'tax_rate' => 'nullable|numeric|min:0|max:100',
+            'tax_name' => 'nullable|string|max:50',
         ]);
+
+        $validated['is_taxable'] = $request->has('is_taxable');
 
         if ($request->hasFile('hero_image')) {
             $file = $request->file('hero_image');
@@ -61,7 +69,8 @@ class EventController extends Controller
     public function edit(Event $event)
     {
         $this->authorizeEvent($event);
-        return view('admin.events.edit', compact('event'));
+        $categories = Category::active()->ordered()->get();
+        return view('admin.events.edit', compact('event', 'categories'));
     }
 
     public function update(Request $request, Event $event)
@@ -73,6 +82,7 @@ class EventController extends Controller
             'subtitle' => 'nullable|string|max:255',
             'description' => 'nullable|string',
             'type' => 'required|in:offline,online,hybrid',
+            'category_id' => 'nullable|exists:categories,id',
             'start_date' => 'required|date',
             'end_date' => 'required|date|after_or_equal:start_date',
             'timezone' => 'required|string|max:50',
@@ -82,7 +92,12 @@ class EventController extends Controller
             'online_url' => 'nullable|url|max:500',
             'capacity' => 'nullable|integer|min:1',
             'hero_image' => 'nullable|image|mimes:jpeg,png,jpg,gif,webp|max:2048',
+            'is_taxable' => 'nullable|boolean',
+            'tax_rate' => 'nullable|numeric|min:0|max:100',
+            'tax_name' => 'nullable|string|max:50',
         ]);
+
+        $validated['is_taxable'] = $request->has('is_taxable');
 
         if ($request->hasFile('hero_image')) {
             if ($event->hero_image) {

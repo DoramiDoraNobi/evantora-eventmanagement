@@ -49,9 +49,41 @@ class HomeScreen extends ConsumerWidget {
             },
             child: ListView.builder(
               padding: const EdgeInsets.all(16),
-              itemCount: events.length,
+              itemCount: events.length + 1,
               itemBuilder: (context, index) {
-                final event = events[index];
+                if (index == 0) {
+                  return Column(
+                    crossAxisAlignment: CrossAxisAlignment.start,
+                    children: [
+                      Text(
+                        'Popular Categories',
+                        style: Theme.of(context).textTheme.titleMedium?.copyWith(fontWeight: FontWeight.bold),
+                      ),
+                      const SizedBox(height: 12),
+                      SizedBox(
+                        height: 40,
+                        child: ListView(
+                          scrollDirection: Axis.horizontal,
+                          children: [
+                            _buildCategoryChip(context, 'Music', Icons.music_note),
+                            _buildCategoryChip(context, 'Technology', Icons.computer),
+                            _buildCategoryChip(context, 'Workshop', Icons.build),
+                            _buildCategoryChip(context, 'Business', Icons.business),
+                            _buildCategoryChip(context, 'Art', Icons.brush),
+                          ],
+                        ),
+                      ),
+                      const SizedBox(height: 24),
+                      Text(
+                        'Upcoming Events',
+                        style: Theme.of(context).textTheme.titleMedium?.copyWith(fontWeight: FontWeight.bold),
+                      ),
+                      const SizedBox(height: 12),
+                    ],
+                  );
+                }
+
+                final event = events[index - 1];
                 return Card(
                   margin: const EdgeInsets.only(bottom: 16),
                   clipBehavior: Clip.antiAlias,
@@ -152,6 +184,23 @@ class HomeScreen extends ConsumerWidget {
             ],
           ),
         ),
+      ),
+    );
+  }
+
+  Widget _buildCategoryChip(BuildContext context, String label, IconData icon) {
+    return Padding(
+      padding: const EdgeInsets.only(right: 8.0),
+      child: ActionChip(
+        avatar: Icon(icon, size: 16, color: Theme.of(context).colorScheme.onSecondaryContainer),
+        label: Text(label),
+        backgroundColor: Theme.of(context).colorScheme.secondaryContainer,
+        onPressed: () {
+          // Placeholder for filter action
+          ScaffoldMessenger.of(context).showSnackBar(
+            SnackBar(content: Text('Filtered by $label')),
+          );
+        },
       ),
     );
   }

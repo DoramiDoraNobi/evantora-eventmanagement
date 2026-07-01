@@ -14,7 +14,7 @@ class TicketRepository {
 
   TicketRepository(this._dio);
 
-  Future<Ticket> purchaseTicket(int eventId, Map<int, int> selectedTickets) async {
+  Future<Ticket> purchaseTicket(int eventId, Map<int, int> selectedTickets, String paymentMethod) async {
     try {
       if (selectedTickets.isEmpty) {
         throw Exception('No tickets selected');
@@ -46,14 +46,15 @@ class TicketRepository {
         'buyer_name': user['name'] ?? 'Buyer',
         'buyer_email': user['email'] ?? 'buyer@example.com',
         'tickets': ticketsPayload,
-        'attendees': attendeesPayload
+        'attendees': attendeesPayload,
+        'payment_method': paymentMethod
       };
 
       final response = await _dio.post('${ApiConstants.events}/$eventId/checkout', data: payload);
       final responseData = response.data;
       
       // If Stripe client_secret is returned, handle the native payment sheet
-      if (responseData['client_secret'] != null) {
+      if (paymentMethod == 'stripe' && responseData['client_secret'] != null) {
         
         Stripe.publishableKey = responseData['publishable_key'];
         if (responseData['stripe_account'] != null) {
@@ -74,8 +75,17 @@ class TicketRepository {
         final orderNumber = responseData['order']['order_number'];
         final verifyPayload = {
            'payment_intent_id': responseData['client_secret'].split('_secret')[0],
+           'payment_method': 'stripe',
         };
         await _dio.post('${ApiConstants.baseUrl}/orders/$orderNumber/verify-payment', data: verifyPayload);
+      } else if (paymentMethod == 'midtrans' && responseData['midtrans_redirect_url'] != null) {
+        // Return a special ticket that signals the UI to open the URL
+        return Ticket(
+            id: 0,
+            ticketCode: responseData['midtrans_redirect_url'], // HACK: Pass URL via ticketCode
+            status: 'pending',
+            price: 0.0,
+        );
       }
 
       // Return a dummy ticket or the first attendee's ticket

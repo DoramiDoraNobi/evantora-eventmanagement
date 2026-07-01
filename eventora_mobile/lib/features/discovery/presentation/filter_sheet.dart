@@ -126,7 +126,7 @@ class _FilterSheetState extends ConsumerState<FilterSheet> {
             ),
             const SizedBox(height: 8),
             DropdownButtonFormField<String>(
-              value: _sort.isEmpty ? null : _sort,
+              initialValue: _sort.isEmpty ? null : _sort,
               decoration: const InputDecoration(
                 border: OutlineInputBorder(),
                 contentPadding: EdgeInsets.symmetric(horizontal: 16, vertical: 8),
@@ -149,7 +149,7 @@ class _FilterSheetState extends ConsumerState<FilterSheet> {
             ),
             const SizedBox(height: 8),
             DropdownButtonFormField<String>(
-              value: _selectedDateFilter.isEmpty ? null : _selectedDateFilter,
+              initialValue: _selectedDateFilter.isEmpty ? null : _selectedDateFilter,
               decoration: const InputDecoration(
                 border: OutlineInputBorder(),
                 contentPadding: EdgeInsets.symmetric(horizontal: 16, vertical: 8),
@@ -174,7 +174,7 @@ class _FilterSheetState extends ConsumerState<FilterSheet> {
             ),
             const SizedBox(height: 8),
             DropdownButtonFormField<String>(
-              value: _selectedType.isEmpty ? null : _selectedType,
+              initialValue: _selectedType.isEmpty ? null : _selectedType,
               decoration: const InputDecoration(
                 border: OutlineInputBorder(),
                 contentPadding: EdgeInsets.symmetric(horizontal: 16, vertical: 8),

@@ -26,6 +26,8 @@ class TicketController extends Controller
             'price' => 'required|numeric|min:0',
             'quantity' => 'nullable|integer|min:1',
             'description' => 'nullable|string',
+            'sales_start' => 'nullable|date',
+            'sales_end' => 'nullable|date|after_or_equal:sales_start',
             'is_active' => 'sometimes',
         ]);
         

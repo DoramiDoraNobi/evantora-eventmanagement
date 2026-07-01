@@ -5,6 +5,7 @@ namespace App\Http\Controllers\Api\V1;
 use App\Http\Controllers\Controller;
 use App\Http\Resources\EventResource;
 use App\Http\Resources\OrganizationResource;
+use App\Models\Category;
 use App\Models\Event;
 use App\Models\Organization;
 use Illuminate\Http\Request;
@@ -16,7 +17,7 @@ class PublicEventController extends Controller
      */
             public function index(Request $request)
     {
-        $query = Event::with(['organization', 'tickets' => fn($q) => $q->where('is_active', true)])
+        $query = Event::with(['organization', 'category', 'tickets' => fn($q) => $q->where('is_active', true)])
             ->where('status', 'published')
             ->whereHas('organization', fn($q) => $q->where('is_active', true));
 
@@ -47,6 +48,11 @@ class PublicEventController extends Controller
         // Type filter
         if ($request->filled('type')) {
             $query->where('type', $request->input('type'));
+        }
+
+        // Category filter
+        if ($request->filled('category_id')) {
+            $query->where('category_id', $request->input('category_id'));
         }
 
         // Location filter
@@ -88,6 +94,7 @@ class PublicEventController extends Controller
     {
         $event = Event::with([
                 'organization',
+                'category',
                 'tickets' => fn($q) => $q->where('is_active', true)->orderBy('sort_order'),
             ])
             ->where(function ($q) use ($identifier) {
@@ -121,5 +128,14 @@ class PublicEventController extends Controller
             'organization' => new OrganizationResource($organization),
             'events' => EventResource::collection($events),
         ]);
+    }
+
+    /**
+     * GET /api/v1/categories — List active categories
+     */
+    public function categories()
+    {
+        $categories = Category::active()->ordered()->get(['id', 'name', 'slug', 'icon', 'color']);
+        return response()->json(['data' => $categories]);
     }
 }

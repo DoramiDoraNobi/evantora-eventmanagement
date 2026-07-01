@@ -24,6 +24,7 @@ class EventFactory extends Factory
             'description' => '<p>' . implode('</p><p>', $this->faker->paragraphs(4)) . '</p>',
             'short_description' => $this->faker->paragraph(1),
             'type' => $type,
+            'category_id' => \App\Models\Category::inRandomOrder()->first()?->id,
             'start_date' => $startDate,
             'end_date' => $endDate,
             'timezone' => $this->faker->timezone(),

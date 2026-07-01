@@ -146,6 +146,29 @@
                 </div>
             </div>
 
+            @if($totalAmount > 0)
+            <!-- Payment Method -->
+            <div class="bg-white shadow-sm rounded-xl border border-gray-200 overflow-hidden">
+                <div class="px-6 py-4 bg-gray-50 border-b border-gray-200">
+                    <h3 class="text-lg font-medium">Payment Method</h3>
+                </div>
+                <div class="p-6 space-y-4">
+                    <label class="flex items-center space-x-3">
+                        <input type="radio" name="payment_method" value="midtrans" class="form-radio h-5 w-5 text-indigo-600" checked>
+                        <span class="text-gray-900 font-medium">Midtrans (Khusus Indonesia)</span>
+                    </label>
+                    <label class="flex items-center space-x-3">
+                        <input type="radio" name="payment_method" value="stripe" class="form-radio h-5 w-5 text-indigo-600">
+                        <span class="text-gray-900 font-medium">Credit Card (Stripe)</span>
+                    </label>
+                    <label class="flex items-center space-x-3">
+                        <input type="radio" name="payment_method" value="paypal" class="form-radio h-5 w-5 text-indigo-600">
+                        <span class="text-gray-900 font-medium">PayPal</span>
+                    </label>
+                </div>
+            </div>
+            @endif
+
             <button type="submit" class="w-full py-4 px-4 border border-transparent rounded-xl shadow-sm text-lg font-bold text-white hover:opacity-90 focus:outline-none focus:ring-2 focus:ring-offset-2" style="background-color: {{ $organization->primary_color }};">
                 {{ $totalAmount == 0 ? 'Register for Free' : 'Proceed to Payment' }}
             </button>

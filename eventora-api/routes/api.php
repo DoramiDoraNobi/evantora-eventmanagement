@@ -40,6 +40,9 @@ Route::prefix('v1')->middleware('throttle:api')->group(function () {
     Route::get('events', [PublicEventController::class, 'index']);
     Route::get('events/{slug}', [PublicEventController::class, 'show']);
 
+    // Categories (public listing)
+    Route::get('categories', [PublicEventController::class, 'categories']);
+
     // Organization Profile
     Route::get('organizations/{slug}', [PublicEventController::class, 'organizationProfile']);
 
@@ -58,6 +61,7 @@ Route::prefix('v1')->middleware('throttle:api')->group(function () {
 
         // --- Checkout (auth optional but available) ---
         Route::post('events/{slug}/checkout', [PublicCheckoutController::class, 'checkout']);
+        Route::post('events/{slug}/validate-coupon', [PublicCheckoutController::class, 'validateCoupon']);
         Route::post('orders/{orderNumber}/verify-payment', [PublicCheckoutController::class, 'verifyPayment']);
 
         // --- Buyer Routes ---
@@ -101,9 +105,17 @@ Route::prefix('v1')->middleware('throttle:api')->group(function () {
                 Route::post('checkin', [CheckinController::class, 'scan']);
                 Route::get('events/{eventId}/checkin-stats', [CheckinController::class, 'stats']);
 
+                // Offline Sync
+                Route::get('events/{eventId}/tickets-sync', [\App\Http\Controllers\Api\V1\TicketSyncController::class, 'index']);
+                Route::post('events/{eventId}/tickets-sync', [\App\Http\Controllers\Api\V1\TicketSyncController::class, 'sync']);
+
                 // Team
                 Route::get('team', [TeamController::class, 'index']);
                 Route::post('team', [TeamController::class, 'store']);
+
+                // Payouts
+                Route::get('payouts', [\App\Http\Controllers\Api\V1\PayoutController::class, 'index']);
+                Route::post('payouts', [\App\Http\Controllers\Api\V1\PayoutController::class, 'store']);
             });
         });
     });

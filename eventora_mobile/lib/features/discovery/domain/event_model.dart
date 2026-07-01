@@ -40,6 +40,11 @@ class Event {
   final int capacity;
   final double price;
   final List<EventTicket> tickets;
+  final bool isTaxable;
+  final double taxRate;
+  final String taxName;
+  final double platformFeePercent;
+  final double platformFeeFixed;
 
   Event({
     required this.id,
@@ -51,12 +56,19 @@ class Event {
     required this.capacity,
     required this.price,
     required this.tickets,
+    this.isTaxable = false,
+    this.taxRate = 0.0,
+    this.taxName = 'Tax',
+    this.platformFeePercent = 0.0,
+    this.platformFeeFixed = 0.0,
   });
 
   factory Event.fromJson(Map<String, dynamic> json) {
     final ticketsList = json['tickets'] as List? ?? [];
     final parsedTickets = ticketsList.map((t) => EventTicket.fromJson(t)).toList();
     
+    final platformFees = json['platform_fees'] as Map<String, dynamic>? ?? {};
+
     return Event(
       id: json['id'] ?? 0,
       title: json['title'] ?? 'Untitled',
@@ -67,6 +79,11 @@ class Event {
       capacity: json['capacity'] ?? 0,
       price: parsedTickets.isNotEmpty ? parsedTickets.first.price : ((json['price'] as num?)?.toDouble() ?? 0.0),
       tickets: parsedTickets,
+      isTaxable: json['is_taxable'] ?? false,
+      taxRate: (json['tax_rate'] as num?)?.toDouble() ?? 0.0,
+      taxName: json['tax_name'] ?? 'Tax',
+      platformFeePercent: (platformFees['percent'] as num?)?.toDouble() ?? 5.0,
+      platformFeeFixed: (platformFees['fixed'] as num?)?.toDouble() ?? 0.0,
     );
   }
 }

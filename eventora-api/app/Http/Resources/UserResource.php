@@ -15,6 +15,7 @@ class UserResource extends JsonResource
             'email' => $this->email,
             'is_super_admin' => (bool) $this->is_super_admin,
             'email_verified_at' => $this->email_verified_at,
+            'organizations' => OrganizationResource::collection($this->whenLoaded('organizations')),
             'created_at' => $this->created_at,
         ];
     }

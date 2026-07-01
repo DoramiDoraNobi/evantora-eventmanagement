@@ -92,15 +92,17 @@ class DashboardController extends Controller
             ]);
 
         return response()->json([
-            'summary' => [
-                'gross_revenue' => (float) $grossRevenue,
-                'tickets_sold' => $ticketsSold,
-                'active_events' => $activeEventsCount,
-                'total_checkins' => $totalCheckins,
-            ],
-            'revenue_trend' => $trendData,
-            'sales_by_event' => $salesByEvent,
-            'recent_orders' => $recentOrders,
+            'data' => [
+                'summary' => [
+                    'gross_revenue' => (float) $grossRevenue,
+                    'tickets_sold' => $ticketsSold,
+                    'active_events' => $activeEventsCount,
+                    'total_checkins' => $totalCheckins,
+                ],
+                'revenue_trend' => $trendData,
+                'sales_by_event' => $salesByEvent,
+                'recent_orders' => $recentOrders,
+            ]
         ]);
     }
 }

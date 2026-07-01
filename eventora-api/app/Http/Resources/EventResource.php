@@ -19,6 +19,16 @@ class EventResource extends JsonResource
             'description' => $this->description,
             'short_description' => $this->short_description,
             'type' => $this->type,
+            'category_id' => $this->category_id,
+            'category' => $this->whenLoaded('category', function () {
+                return [
+                    'id' => $this->category->id,
+                    'name' => $this->category->name,
+                    'slug' => $this->category->slug,
+                    'icon' => $this->category->icon,
+                    'color' => $this->category->color,
+                ];
+            }),
             'start_date' => $this->start_date,
             'end_date' => $this->end_date,
             'timezone' => $this->timezone,
@@ -34,6 +44,13 @@ class EventResource extends JsonResource
             'tickets' => TicketResource::collection($this->whenLoaded('tickets')),
             'attendees_count' => $this->whenCounted('attendees'),
             'orders_count' => $this->whenCounted('orders'),
+            'is_taxable' => (bool) $this->is_taxable,
+            'tax_rate' => (float) $this->tax_rate,
+            'tax_name' => $this->tax_name,
+            'platform_fees' => [
+                'percent' => (float) \App\Models\Setting::getVal('platform_fee_percent', env('PLATFORM_FEE_PERCENT', 5)),
+                'fixed' => (float) \App\Models\Setting::getVal('platform_fee_fixed', 0),
+            ],
             'created_at' => $this->created_at,
             'updated_at' => $this->updated_at,
         ];

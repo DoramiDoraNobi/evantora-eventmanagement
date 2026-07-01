@@ -18,11 +18,11 @@ class PurchaseTicketController extends AsyncNotifier<Ticket?> {
     return null;
   }
 
-  Future<bool> purchase(int eventId, Map<int, int> selectedTickets) async {
+  Future<bool> purchase(int eventId, Map<int, int> selectedTickets, String paymentMethod) async {
     state = const AsyncValue.loading();
     try {
       final repository = ref.read(ticketRepositoryProvider);
-      final ticket = await repository.purchaseTicket(eventId, selectedTickets);
+      final ticket = await repository.purchaseTicket(eventId, selectedTickets, paymentMethod);
       state = AsyncValue.data(ticket);
       ref.invalidate(myTicketsProvider);
       return true;

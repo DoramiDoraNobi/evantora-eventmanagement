@@ -64,6 +64,19 @@
                             </div>
                         </div>
 
+                        <div>
+                            <x-input-label for="category_id" :value="__('Category')" />
+                            <select id="category_id" name="category_id" class="mt-1 block w-full border-gray-300 focus:border-indigo-500 focus:ring-indigo-500 rounded-md shadow-sm">
+                                <option value="">— No Category —</option>
+                                @foreach($categories as $cat)
+                                    <option value="{{ $cat->id }}" {{ old('category_id') == $cat->id ? 'selected' : '' }}>
+                                        {{ $cat->icon ? $cat->icon . ' ' : '' }}{{ $cat->name }}
+                                    </option>
+                                @endforeach
+                            </select>
+                            <x-input-error class="mt-2" :messages="$errors->get('category_id')" />
+                        </div>
+
                         {{-- Venue Name (shown for offline/hybrid) --}}
                         <div x-show="eventType === 'offline' || eventType === 'hybrid'" x-transition>
                             <x-input-label for="venue_name" :value="__('Venue Name')" />
@@ -80,14 +93,16 @@
 
                         <div class="grid grid-cols-2 gap-4">
                             <div>
-                                <x-input-label for="start_date" :value="__('Start Date & Time')" />
+                                <x-input-label for="start_date" :value="__('Event Start Date & Time')" />
                                 <x-text-input id="start_date" name="start_date" type="datetime-local" class="mt-1 block w-full" :value="old('start_date')" required />
                                 <x-input-error class="mt-2" :messages="$errors->get('start_date')" />
+                                <p class="text-xs text-gray-500 mt-1">Kapan acara secara fisik/aktual dimulai (Bukan jadwal penjualan tiket).</p>
                             </div>
                             <div>
-                                <x-input-label for="end_date" :value="__('End Date & Time')" />
+                                <x-input-label for="end_date" :value="__('Event End Date & Time')" />
                                 <x-text-input id="end_date" name="end_date" type="datetime-local" class="mt-1 block w-full" :value="old('end_date')" required />
                                 <x-input-error class="mt-2" :messages="$errors->get('end_date')" />
+                                <p class="text-xs text-gray-500 mt-1">Kapan acara diproyeksikan akan berakhir.</p>
                             </div>
                         </div>
 
@@ -95,6 +110,30 @@
                             <x-input-label for="timezone" :value="__('Timezone')" />
                             <x-text-input id="timezone" name="timezone" type="text" class="mt-1 block w-full" value="{{ old('timezone', 'Asia/Jakarta') }}" required />
                             <p class="text-xs text-gray-500 mt-1">Example: UTC, Asia/Jakarta</p>
+                        </div>
+
+                        <div class="border-t pt-4" x-data="{ isTaxable: {{ old('is_taxable') ? 'true' : 'false' }} }">
+                            <h3 class="font-medium text-lg mb-4">Tax Settings</h3>
+                            
+                            <div class="mb-4">
+                                <label for="is_taxable" class="inline-flex items-center">
+                                    <input id="is_taxable" type="checkbox" class="rounded border-gray-300 text-indigo-600 shadow-sm focus:ring-indigo-500" name="is_taxable" value="1" x-model="isTaxable">
+                                    <span class="ml-2 text-sm text-gray-600">{{ __('Charge Tax on this Event') }}</span>
+                                </label>
+                            </div>
+
+                            <div x-show="isTaxable" x-transition class="grid grid-cols-2 gap-4">
+                                <div>
+                                    <x-input-label for="tax_name" :value="__('Tax Name')" />
+                                    <x-text-input id="tax_name" name="tax_name" type="text" class="mt-1 block w-full" value="{{ old('tax_name', 'Tax') }}" placeholder="e.g. PPN" />
+                                    <x-input-error class="mt-2" :messages="$errors->get('tax_name')" />
+                                </div>
+                                <div>
+                                    <x-input-label for="tax_rate" :value="__('Tax Rate (%)')" />
+                                    <x-text-input id="tax_rate" name="tax_rate" type="number" step="0.01" class="mt-1 block w-full" value="{{ old('tax_rate', '0') }}" placeholder="e.g. 11" />
+                                    <x-input-error class="mt-2" :messages="$errors->get('tax_rate')" />
+                                </div>
+                            </div>
                         </div>
 
                         <div class="flex items-center gap-4">

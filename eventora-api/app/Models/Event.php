@@ -20,6 +20,11 @@ class Event extends Model
     ];
 
     //
+    public function category()
+    {
+        return $this->belongsTo(Category::class);
+    }
+
     public function organization()
     {
         return $this->belongsTo(Organization::class);
@@ -38,5 +43,10 @@ class Event extends Model
     public function attendees()
     {
         return $this->hasMany(Attendee::class);
+    }
+
+    public function coupons()
+    {
+        return $this->hasMany(Coupon::class);
     }
 }

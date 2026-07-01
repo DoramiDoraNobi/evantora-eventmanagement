@@ -62,10 +62,26 @@
                             <x-text-input id="quantity" name="quantity" type="number" min="1" class="mt-1 block w-full" />
                         </div>
                         
+                        <div class="grid grid-cols-2 gap-4">
+                            <div>
+                                <x-input-label for="sales_start" :value="__('Sales Start (Optional)')" />
+                                <x-text-input id="sales_start" name="sales_start" type="datetime-local" class="mt-1 block w-full" />
+                                <p class="text-xs text-gray-500 mt-1">Kosongkan jika ingin langsung dijual.</p>
+                            </div>
+                            <div>
+                                <x-input-label for="sales_end" :value="__('Sales End (Optional)')" />
+                                <x-text-input id="sales_end" name="sales_end" type="datetime-local" class="mt-1 block w-full" />
+                                <p class="text-xs text-gray-500 mt-1">Kosongkan jika dijual sampai acara dimulai.</p>
+                            </div>
+                        </div>
+                        
                         <div>
-                            <label class="inline-flex items-center">
-                                <input type="checkbox" name="is_active" class="rounded border-gray-300 text-indigo-600 shadow-sm focus:ring-indigo-500" checked>
-                                <span class="ms-2 text-sm text-gray-600">Active (Visible to public)</span>
+                            <label class="inline-flex items-start mt-2">
+                                <input type="checkbox" name="is_active" class="rounded border-gray-300 text-indigo-600 shadow-sm focus:ring-indigo-500 mt-1" checked>
+                                <div class="ms-2">
+                                    <span class="text-sm font-medium text-gray-700">Tampilkan Tiket ke Publik</span>
+                                    <p class="text-xs text-gray-500">Hapus centang jika ini tiket rahasia atau belum siap ditampilkan.</p>
+                                </div>
                             </label>
                         </div>
                         
@@ -99,6 +115,14 @@
                                             @endif
                                         </span>
                                     </div>
+                                    @if($ticket->sales_start || $ticket->sales_end)
+                                    <div class="text-xs text-gray-400 mt-1">
+                                        Sales: 
+                                        @if($ticket->sales_start) {{ \Carbon\Carbon::parse($ticket->sales_start)->format('M d, g:i A') }} @else Now @endif
+                                        - 
+                                        @if($ticket->sales_end) {{ \Carbon\Carbon::parse($ticket->sales_end)->format('M d, g:i A') }} @else Until Event @endif
+                                    </div>
+                                    @endif
                                 </div>
                                 <div class="flex items-center gap-3">
                                     <span class="text-xs px-2 py-1 rounded {{ $ticket->is_active ? 'bg-green-100 text-green-800' : 'bg-red-100 text-red-800' }}">

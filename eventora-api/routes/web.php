@@ -37,6 +37,13 @@ Route::middleware('auth')->group(function () {
     // Team Routes
     Route::get('/organization/team', [\App\Http\Controllers\Admin\TeamController::class, 'index'])->name('team.index')->middleware('tenant.role:owner,admin');
     Route::post('/organization/team', [\App\Http\Controllers\Admin\TeamController::class, 'store'])->name('team.store')->middleware('tenant.role:owner,admin');
+
+    // Coupon Routes
+    Route::resource('coupons', \App\Http\Controllers\Admin\CouponController::class)->middleware('tenant.role:owner,admin,event_manager');
+
+    // Finance & Payout Routes
+    Route::get('/organization/finance', [\App\Http\Controllers\Admin\FinanceController::class, 'index'])->name('finance.index')->middleware('tenant.role:owner,admin');
+    Route::post('/organization/finance/payout', [\App\Http\Controllers\Admin\FinanceController::class, 'store'])->name('finance.store')->middleware('tenant.role:owner,admin');
 });
 
 // Super Admin Routes
@@ -44,6 +51,15 @@ Route::middleware(['auth', 'verified', 'superadmin'])->prefix('super-admin')->na
     Route::get('/', [\App\Http\Controllers\SuperAdmin\DashboardController::class, 'index'])->name('dashboard');
     Route::get('/tenants', [\App\Http\Controllers\SuperAdmin\TenantController::class, 'index'])->name('tenants.index');
     Route::post('/tenants/{tenant}/toggle', [\App\Http\Controllers\SuperAdmin\TenantController::class, 'toggleStatus'])->name('tenants.toggle');
+
+    // Categories CRUD
+    Route::resource('categories', \App\Http\Controllers\SuperAdmin\CategoryController::class)->except(['show']);
+
+    // Global Settings
+    Route::get('/settings', [\App\Http\Controllers\SuperAdmin\SettingController::class, 'index'])->name('settings.index');
+    Route::post('/settings', [\App\Http\Controllers\SuperAdmin\SettingController::class, 'update'])->name('settings.update');
+    // Payout Requests
+    Route::resource('payouts', \App\Http\Controllers\SuperAdmin\PayoutController::class)->only(['index', 'update']);
 });
 
 // Check-in route — outside auth middleware group because fetch POST doesn't

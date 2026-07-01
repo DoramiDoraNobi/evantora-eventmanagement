@@ -14,18 +14,42 @@
 
                 <!-- Navigation Links -->
                 <div class="hidden space-x-8 sm:-my-px sm:ms-10 sm:flex">
-                    <x-nav-link :href="route('dashboard')" :active="request()->routeIs('dashboard')">
-                        {{ __('Dashboard') }}
-                    </x-nav-link>
-                                        <x-nav-link :href="route('events.index')" :active="request()->routeIs('events.*')">
-                        {{ __('Events') }}
-                    </x-nav-link>
-                    <x-nav-link :href="route('organization.edit')" :active="request()->routeIs('organization.edit')">
-                        {{ __('Organization') }}
-                    </x-nav-link>
-                    <x-nav-link :href="route('team.index')" :active="request()->routeIs('team.*')">
-                        {{ __('Team') }}
-                    </x-nav-link>
+                    @if(request()->routeIs('super-admin.*'))
+                        <x-nav-link :href="route('super-admin.dashboard')" :active="request()->routeIs('super-admin.dashboard')">
+                            {{ __('Dashboard') }}
+                        </x-nav-link>
+                        <x-nav-link :href="route('super-admin.tenants.index')" :active="request()->routeIs('super-admin.tenants.*')">
+                            {{ __('Tenants') }}
+                        </x-nav-link>
+                        <x-nav-link :href="route('super-admin.categories.index')" :active="request()->routeIs('super-admin.categories.*')">
+                            {{ __('Categories') }}
+                        </x-nav-link>
+                        <x-nav-link :href="route('super-admin.payouts.index')" :active="request()->routeIs('super-admin.payouts.*')">
+                            {{ __('Payouts') }}
+                        </x-nav-link>
+                        <x-nav-link :href="route('super-admin.settings.index')" :active="request()->routeIs('super-admin.settings.*')">
+                            {{ __('Settings') }}
+                        </x-nav-link>
+                    @else
+                        <x-nav-link :href="route('dashboard')" :active="request()->routeIs('dashboard')">
+                            {{ __('Dashboard') }}
+                        </x-nav-link>
+                        <x-nav-link :href="route('events.index')" :active="request()->routeIs('events.*')">
+                            {{ __('Events') }}
+                        </x-nav-link>
+                        <x-nav-link :href="route('coupons.index')" :active="request()->routeIs('coupons.*')">
+                            {{ __('Coupons') }}
+                        </x-nav-link>
+                        <x-nav-link :href="route('organization.edit')" :active="request()->routeIs('organization.edit')">
+                            {{ __('Organization') }}
+                        </x-nav-link>
+                        <x-nav-link :href="route('finance.index')" :active="request()->routeIs('finance.*')">
+                            {{ __('Finance') }}
+                        </x-nav-link>
+                        <x-nav-link :href="route('team.index')" :active="request()->routeIs('team.*')">
+                            {{ __('Team') }}
+                        </x-nav-link>
+                    @endif
                 </div>
             </div>
 
@@ -86,18 +110,42 @@
     <!-- Responsive Navigation Menu -->
     <div :class="{'block': open, 'hidden': ! open}" class="hidden sm:hidden bg-[#FDFBF7]">
         <div class="pt-2 pb-3 space-y-1">
-            <x-responsive-nav-link :href="route('dashboard')" :active="request()->routeIs('dashboard')">
-                {{ __('Dashboard') }}
-            </x-responsive-nav-link>
-                        <x-responsive-nav-link :href="route('events.index')" :active="request()->routeIs('events.*')">
-                {{ __('Events') }}
-            </x-responsive-nav-link>
-            <x-responsive-nav-link :href="route('organization.edit')" :active="request()->routeIs('organization.edit')">
-                {{ __('Organization') }}
-            </x-responsive-nav-link>
-            <x-responsive-nav-link :href="route('team.index')" :active="request()->routeIs('team.*')">
-                {{ __('Team') }}
-            </x-responsive-nav-link>
+            @if(request()->routeIs('super-admin.*'))
+                <x-responsive-nav-link :href="route('super-admin.dashboard')" :active="request()->routeIs('super-admin.dashboard')">
+                    {{ __('Dashboard') }}
+                </x-responsive-nav-link>
+                <x-responsive-nav-link :href="route('super-admin.tenants.index')" :active="request()->routeIs('super-admin.tenants.*')">
+                    {{ __('Tenants') }}
+                </x-responsive-nav-link>
+                <x-responsive-nav-link :href="route('super-admin.categories.index')" :active="request()->routeIs('super-admin.categories.*')">
+                    {{ __('Categories') }}
+                </x-responsive-nav-link>
+                <x-responsive-nav-link :href="route('super-admin.payouts.index')" :active="request()->routeIs('super-admin.payouts.*')">
+                    {{ __('Payouts') }}
+                </x-responsive-nav-link>
+                <x-responsive-nav-link :href="route('super-admin.settings.index')" :active="request()->routeIs('super-admin.settings.*')">
+                    {{ __('Settings') }}
+                </x-responsive-nav-link>
+            @else
+                <x-responsive-nav-link :href="route('dashboard')" :active="request()->routeIs('dashboard')">
+                    {{ __('Dashboard') }}
+                </x-responsive-nav-link>
+                <x-responsive-nav-link :href="route('events.index')" :active="request()->routeIs('events.*')">
+                    {{ __('Events') }}
+                </x-responsive-nav-link>
+                <x-responsive-nav-link :href="route('coupons.index')" :active="request()->routeIs('coupons.*')">
+                    {{ __('Coupons') }}
+                </x-responsive-nav-link>
+                <x-responsive-nav-link :href="route('organization.edit')" :active="request()->routeIs('organization.edit')">
+                    {{ __('Organization') }}
+                </x-responsive-nav-link>
+                <x-responsive-nav-link :href="route('finance.index')" :active="request()->routeIs('finance.*')">
+                    {{ __('Finance') }}
+                </x-responsive-nav-link>
+                <x-responsive-nav-link :href="route('team.index')" :active="request()->routeIs('team.*')">
+                    {{ __('Team') }}
+                </x-responsive-nav-link>
+            @endif
         </div>
 
         <!-- Responsive Settings Options -->

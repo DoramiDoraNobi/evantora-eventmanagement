@@ -1,3 +1,4 @@
+rootProject.name = "eventora_mobile"
 pluginManagement {
     val flutterSdkPath =
         run {

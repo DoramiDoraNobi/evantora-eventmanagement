@@ -33,14 +33,17 @@ class AuthController extends Controller
 
         $token = $user->createToken($request->device_name)->plainTextToken;
 
-        // Load organizations with roles
-        $organizations = $user->organizations()->withPivot('role')->get();
+        $user->load(['organizations' => function ($query) {
+            $query->withPivot('role');
+        }]);
 
         return response()->json([
             'message' => 'Login successful.',
             'token' => $token,
             'user' => new UserResource($user),
-            'organizations' => OrganizationResource::collection($organizations),
+            // We can still keep the explicit organizations array for backward compatibility if needed, 
+            // but it is now inside 'user' as well.
+            'organizations' => OrganizationResource::collection($user->organizations),
         ]);
     }
 
@@ -90,11 +93,13 @@ class AuthController extends Controller
     public function me(Request $request)
     {
         $user = $request->user();
-        $organizations = $user->organizations()->withPivot('role')->get();
+        $user->load(['organizations' => function ($query) {
+            $query->withPivot('role');
+        }]);
 
         return response()->json([
             'user' => new UserResource($user),
-            'organizations' => OrganizationResource::collection($organizations),
+            'organizations' => OrganizationResource::collection($user->organizations),
         ]);
     }
 }

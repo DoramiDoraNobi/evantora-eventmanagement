@@ -36,6 +36,11 @@
                                         <td class="px-6 py-4">
                                             <div class="text-sm font-medium text-gray-900">{{ $event->title }}</div>
                                             <div class="text-sm text-gray-500">{{ ucfirst($event->type) }}</div>
+                                            @if($event->category)
+                                                <span class="inline-flex items-center gap-1 mt-1 px-2 py-0.5 text-xs font-medium rounded-full text-white" style="background-color: {{ $event->category->color ?? '#6b7280' }}">
+                                                    {{ $event->category->icon }} {{ $event->category->name }}
+                                                </span>
+                                            @endif
                                         </td>
                                         <td class="px-6 py-4 text-sm text-gray-500">
                                             {{ \Carbon\Carbon::parse($event->start_date)->format('M d, Y') }}

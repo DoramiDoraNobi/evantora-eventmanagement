@@ -18,6 +18,7 @@ class CheckinController extends Controller
         $organization = app('current_organization');
 
         $request->validate([
+            'event_id' => 'required|exists:events,id',
             'qr_code' => 'required|string',
             'method' => 'nullable|string|in:qr_scan,manual,search',
             'device_info' => 'nullable|string',
@@ -44,6 +45,13 @@ class CheckinController extends Controller
                 'success' => false,
                 'message' => 'Invalid QR Code: Ticket not found.',
             ], 404);
+        }
+
+        if ($attendee->event_id != $request->event_id) {
+            return response()->json([
+                'success' => false,
+                'message' => 'Ticket valid, but it is for a different event: ' . ($attendee->event->title ?? 'Unknown'),
+            ], 403);
         }
 
         if ($attendee->status === 'checked_in') {

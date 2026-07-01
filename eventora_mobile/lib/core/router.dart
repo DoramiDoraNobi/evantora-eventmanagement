@@ -12,6 +12,7 @@ import '../features/tickets/domain/ticket_model.dart';
 import '../features/organizer/presentation/organizer_dashboard_screen.dart';
 import '../features/organizer/presentation/organizer_events_screen.dart';
 import '../features/organizer/presentation/qr_scanner_screen.dart';
+import '../features/organizer/presentation/payouts_screen.dart';
 
 final routerProvider = Provider<GoRouter>((ref) {
   return GoRouter(
@@ -81,6 +82,10 @@ final routerProvider = Provider<GoRouter>((ref) {
       GoRoute(
         path: '/organizer/events',
         builder: (context, state) => const OrganizerEventsScreen(),
+      ),
+      GoRoute(
+        path: '/organizer/payouts',
+        builder: (context, state) => const PayoutsScreen(),
       ),
       GoRoute(
         path: '/scanner',

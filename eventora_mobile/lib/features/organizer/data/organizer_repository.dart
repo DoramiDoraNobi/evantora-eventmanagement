@@ -34,16 +34,60 @@ class OrganizerRepository {
     }
   }
 
-  Future<String> checkinTicket(int orgId, String ticketCode) async {
+  Future<String> checkinTicket(int orgId, int eventId, String ticketCode) async {
     try {
       final response = await _dio.post(
         ApiConstants.organizerCheckin(orgId),
-        data: {'ticket_code': ticketCode},
+        data: {'qr_code': ticketCode, 'event_id': eventId},
       );
       return response.data['message'] ?? 'Check-in successful';
     } on DioException catch (e) {
       throw Exception(
           e.response?.data['message'] ?? 'Failed to check in ticket');
+    }
+  }
+
+  Future<Map<String, dynamic>> getPayouts(int orgId) async {
+    try {
+      final response = await _dio.get(ApiConstants.organizerPayouts(orgId));
+      return response.data['data'];
+    } on DioException catch (e) {
+      throw Exception(
+          e.response?.data['message'] ?? 'Failed to load payouts');
+    }
+  }
+
+  Future<void> requestPayout(int orgId, Map<String, dynamic> payload) async {
+    try {
+      await _dio.post(
+        ApiConstants.organizerPayouts(orgId),
+        data: payload,
+      );
+    } on DioException catch (e) {
+      throw Exception(
+          e.response?.data['message'] ?? 'Failed to request payout');
+    }
+  }
+
+  Future<List<dynamic>> downloadTicketsForOffline(int orgId, int eventId) async {
+    try {
+      final response = await _dio.get(ApiConstants.organizerTicketsSync(orgId, eventId));
+      return response.data['data'] as List<dynamic>;
+    } on DioException catch (e) {
+      throw Exception(
+          e.response?.data['message'] ?? 'Failed to download tickets');
+    }
+  }
+
+  Future<void> syncOfflineCheckins(int orgId, int eventId, List<Map<String, dynamic>> scannedTickets) async {
+    try {
+      await _dio.post(
+        ApiConstants.organizerTicketsSync(orgId, eventId),
+        data: {'scanned_tickets': scannedTickets},
+      );
+    } on DioException catch (e) {
+      throw Exception(
+          e.response?.data['message'] ?? 'Failed to sync offline checkins');
     }
   }
 }

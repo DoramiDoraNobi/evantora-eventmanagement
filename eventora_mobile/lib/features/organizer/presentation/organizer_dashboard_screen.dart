@@ -47,6 +47,18 @@ class OrganizerDashboardScreen extends ConsumerWidget {
                   ),
                   const SizedBox(height: 16),
                   _buildStatsGrid(context, stats),
+                  const SizedBox(height: 24),
+                  SizedBox(
+                    width: double.infinity,
+                    child: ElevatedButton.icon(
+                      onPressed: () => context.push('/organizer/payouts'),
+                      icon: const Icon(Icons.account_balance_wallet),
+                      label: const Text('Payouts & Balances'),
+                      style: ElevatedButton.styleFrom(
+                        padding: const EdgeInsets.symmetric(vertical: 16),
+                      ),
+                    ),
+                  ),
                   const SizedBox(height: 32),
                   Row(
                     mainAxisAlignment: MainAxisAlignment.spaceBetween,

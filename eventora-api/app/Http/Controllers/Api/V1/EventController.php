@@ -18,7 +18,7 @@ class EventController extends Controller
     {
         $organization = app('current_organization');
 
-        $query = $organization->events()->withCount(['attendees', 'orders']);
+        $query = $organization->events()->with('category')->withCount(['attendees', 'orders']);
 
         if ($request->filled('status')) {
             $query->where('status', $request->status);
@@ -42,6 +42,7 @@ class EventController extends Controller
             'description' => 'nullable|string',
             'short_description' => 'nullable|string',
             'type' => 'required|in:offline,online,hybrid',
+            'category_id' => 'nullable|exists:categories,id',
             'start_date' => 'required|date',
             'end_date' => 'required|date|after_or_equal:start_date',
             'timezone' => 'required|string|max:50',
@@ -73,7 +74,7 @@ class EventController extends Controller
 
         $event = $organization->events()->create($validated);
 
-        return (new EventResource($event->loadCount(['attendees', 'orders'])))
+        return (new EventResource($event->load('category')->loadCount(['attendees', 'orders'])))
             ->response()
             ->setStatusCode(201);
     }
@@ -86,7 +87,7 @@ class EventController extends Controller
         $organization = app('current_organization');
 
         $event = $organization->events()
-            ->with(['tickets'])
+            ->with(['tickets', 'category'])
             ->withCount(['attendees', 'orders'])
             ->findOrFail($id);
 
@@ -107,6 +108,7 @@ class EventController extends Controller
             'description' => 'nullable|string',
             'short_description' => 'nullable|string',
             'type' => 'sometimes|in:offline,online,hybrid',
+            'category_id' => 'nullable|exists:categories,id',
             'start_date' => 'sometimes|date',
             'end_date' => 'sometimes|date|after_or_equal:start_date',
             'timezone' => 'sometimes|string|max:50',
@@ -139,7 +141,7 @@ class EventController extends Controller
 
         $event->update($validated);
 
-        return new EventResource($event->fresh()->loadCount(['attendees', 'orders']));
+        return new EventResource($event->fresh()->load('category')->loadCount(['attendees', 'orders']));
     }
 
     /**
